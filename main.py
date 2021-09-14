@@ -479,7 +479,7 @@ class Comm(object):
             raise ValueError("Invalid data for writing MCP2515 registers!")
 
     def run(self):
-        """Komunikaní smyčka"""
+        """Komunikančí smyčka"""
         error = False
         hbt = time.time()
         while self._run:
