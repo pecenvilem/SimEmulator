@@ -1,0 +1,88 @@
+{
+  "SPEED": {
+    "id": 1,
+    "length": 2,
+    "multiplier": 100,
+    "signed": true,
+    "period": 500
+  },    
+  "TRAIN_LINE_PRESSURE": {
+    "id": 2,
+    "length": 1,
+    "multiplier": 20,
+    "period": 5000
+  },     
+  "BRAKE_CYLINDER_PRESSURE": {
+    "id": 3,
+    "length": 1,
+    "multiplier": 20,
+    "period": 500
+  },   
+  "SIGNAL_CODE": {
+    "id": 4,
+    "length": 1,
+    "period": 300
+  },   
+  "VIGILANCE_BUTTON": {
+    "id": 5,
+    "length": 1,
+    "period": 100
+  }, 
+  "DRIVING_LEAVER": {
+    "id": 6,
+    "length": 1,
+    "period": 3000
+  }, 
+  "DIRECTION_LEAVER": {
+    "id": 7,
+    "length": 1,
+    "signed": true,
+    "period": 3000
+  }, 
+  "EP_VALVE": {
+    "id": 8,
+    "length": 1,
+    "period": 100
+  }, 
+  "BRIGHTNESS": {
+    "id": 9,
+    "length": 1,
+    "period": 5000
+  }, 
+  "VOLUME": {
+    "id": 10,
+    "length": 1,
+    "period": 3000
+  },               
+  "LS_SWITCH": {
+    "id": 11,
+    "length": 1,
+    "period": 500
+  },
+  "LS_INDICATOR": {
+    "id": 12,
+    "length": 1,
+    "period": 100
+  },
+  "CONTROL_SWITCH": {
+    "id": 13,
+    "length": 1,
+    "period": 5000
+  },
+  "WHISTLE": {
+    "id": 14,
+    "length": 1,
+    "period": 5000
+  },     
+  "BATTERY": {
+    "id": 15,
+    "length": 1,
+    "period": 500
+  },
+  "EMP": {
+    "id": 16,
+    "length": 1,
+    "period": 500
+  }
+}
+
