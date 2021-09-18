@@ -2,6 +2,8 @@ import os
 import tkinter as tk
 import tkinter.font as tf
 import numpy as np
+from abc import ABC, abstractmethod
+from typing import Callable, Tuple, Any, Iterable
 
 
 class SpeedGauge(tk.Frame):
@@ -485,3 +487,146 @@ class ControlLeaver(tk.Frame):
 
     def get(self):
         return int((self.leaver_position + 0.1) / 0.2)
+
+
+class Switch(ABC, tk.Frame):
+    """Abstract clase for rotary as well as leaver switch GUI elements based on real designs used in locomotives."""
+
+    @abstractmethod
+    def __init__(self, parent, *args, **kwargs):
+        try:
+            self.positions = kwargs.pop("positions")
+            self.labels = kwargs.pop("labels")
+            self.values = kwargs.pop("values")
+        except IndexError:
+            raise ValueError("Missing either 'type', 'positions', 'values' or 'icons' in s Switch initializer!")
+        self.variable = kwargs.pop("variable", None)
+        self.color = kwargs.pop("color", "black")
+        self.default = kwargs.pop("default", 0)
+        self.size = kwargs.pop("size", 100)
+        super().__init__(parent, *args, **kwargs)
+        self.graphic = None
+        self.canvas = tk.Canvas(self, width=self.size, height=self.size)
+        self.canvas.grid()
+
+        self.q = self.size / 200
+
+        top_left = (self.size / 2 + self.q * 70, self.size / 2 + self.q * 70)
+        bottom_right = (self.size / 2 - self.q * 70, self.size / 2 - self.q * 70)
+        self.canvas.create_oval(top_left, bottom_right, fill="silver", width=0)
+        top_left = (self.size / 2 + self.q * 45, self.size / 2 + self.q * 45)
+        bottom_right = (self.size / 2 - self.q * 45, self.size / 2 - self.q * 45)
+        self.canvas.create_oval(top_left, bottom_right, fill="black", width=0)
+
+    @abstractmethod
+    def transform(self, value) -> Iterable[Iterable[Callable[[Any], Any], ...], Tuple[Any, ...]]:
+        pass
+
+    @abstractmethod
+    def mark(self, event):
+        pass
+
+    @abstractmethod
+    def drag(self, event):
+        pass
+
+    @abstractmethod
+    def release(self, *_):
+        pass
+
+    def draw(self, position):
+        """NOT an abstract method! Subclasses can use this implementation for drawing on canvas."""
+        self.canvas.delete("graphic")
+        for renderer, element in self.transform(position):
+            renderer(element, fill=self.color, tag="graphic", outline="gray")
+
+
+class RotarySwitch(Switch):
+
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        self.vertices = np.array([
+            [-60 * self.q, 0, 1],
+            [-45 * self.q, 12 * self.q, 1],
+            [80 * self.q, 12 * self.q, 1],
+            [80 * self.q, -12 * self.q, 1],
+            [-45 * self.q, -12 * self.q, 1]
+        ])
+        if len(self.positions) != len(self.values):
+            raise ValueError("Incompatible 'values' and 'positions'! Different number of elements.")
+        self.draw(self.default)
+
+    def transform(self, value):
+        matrix = np.array([
+            [np.cos(np.deg2rad(90 + value)), -np.sin(np.deg2rad(90 + value)), self.size / 2],
+            [np.sin(np.deg2rad(90 + value)), np.cos(np.deg2rad(90 + value)), self.size / 2],
+            [0, 0, 1]
+        ])
+        transformed_vertices = (np.delete(matrix @ vertex.T, 2).astype(int) for vertex in self.vertices)
+        render_info = [(self.canvas.create_polygon, [tuple(vertex) for vertex in transformed_vertices])]
+        return render_info
+
+    def mark(self, event):
+        pass
+
+    def drag(self, event):
+        pass
+
+    def release(self, *_):
+        pass
+
+
+class LeaverSwitch(Switch):
+
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        self.vertices = np.array([
+            [-30 * self.q, -25 * self.q, 1],
+            [30 * self.q, 25 * self.q, 1]
+        ])
+        self.draw(self.default)
+
+    def transform(self, value):
+        render_info = []
+        value *= 0.8
+        value = min(value, 0.8)
+        value = max(-0.8, value)
+        matrix = np.array([
+            [np.cos(0), -np.sin(0), self.size / 2],
+            [np.sin(0), np.cos(0), self.size * (1 - value) / 2],
+            [0, 0, 1]
+        ])
+        # POLE for the leaver
+        transformed_vertices = ((self.size / 2 - self.q * 20, self.size / 2),
+                                (self.size / 2 + self.q * 20, self.size * (1 - value) / 2))
+        render_info.append((self.canvas.create_rectangle, tuple(transformed_vertices)))
+        # leaver's HEAD
+        transformed_vertices = (np.delete(matrix @ vertex.T, 2).astype(int) for vertex in self.vertices)
+        render_info.append((self.canvas.create_rectangle, [tuple(vertex) for vertex in transformed_vertices]))
+        return render_info
+
+    def mark(self, event):
+        pass
+
+    def drag(self, event):
+        pass
+
+    def release(self, *_):
+        pass
+
+
+def main():
+    img_path = os.path.join(os.getcwd(), "img\\hjp")
+    root = tk.Tk()
+    SpeedGauge(root, max_=160).grid(row=0, column=0)
+    TractiveEffortGauge(root).grid(row=0, column=1)
+    ControlLeaver(root, img_path=img_path).grid(row=1, column=0)
+    PressureGauge(root).grid(row=1, column=1)
+    RotarySwitch(root, positions=(), labels=(), values=(), default=-45).grid(row=0, column=2)
+    LeaverSwitch(root, positions=(), labels=(), values=(), default=1).grid(row=0, column=3)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()

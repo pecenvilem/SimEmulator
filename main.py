@@ -961,7 +961,7 @@ class MainPage(tk.Frame):
             self.hide_btn.config(text="Skrýt výpis")
             self.comm.tkraise()
 
-    def toggle_epv(self, event):
+    def toggle_epv(self, _):
         val = self.controler.comm_variables["EP_VALVE"].get()
         self.controler.comm_variables["EP_VALVE"].set(not val)
 
@@ -1028,11 +1028,11 @@ class MainPage(tk.Frame):
         tk.Radiobutton(settings, variable=self.controler.comm_variables["BATTERY"],
                        value=1, text="Zapnuto").grid(row=8, column=3)
 
-        # tk.Label(settings, text="Spínač řízení").grid(row=9, column=1, sticky="e")
-        # tk.Radiobutton(settings, value=0, text="Vypnuto",
-        #                variable=self.controler.comm_variables["CONTROL_SWITCH"]).grid(row=9, column=2)
-        # tk.Radiobutton(settings, value=1, text="Zapnuto",
-        #                variable=self.controler.comm_variables["CONTROL_SWITCH"]).grid(row=9, column=3)
+        tk.Label(settings, text="Spínač řízení").grid(row=9, column=1, sticky="e")
+        tk.Radiobutton(settings, value=0, text="Vypnuto",
+                       variable=self.controler.comm_variables["CONTROL_SWITCH"]).grid(row=9, column=2)
+        tk.Radiobutton(settings, value=1, text="Zapnuto",
+                       variable=self.controler.comm_variables["CONTROL_SWITCH"]).grid(row=9, column=3)
 
         tk.Label(settings, text="Přepínač LS90:").grid(row=10, rowspan=2, column=1, sticky="e")
         tk.Radiobutton(settings, value=0, text="Vypnuto",
@@ -1276,7 +1276,7 @@ class LoggerTreeView(tk.Frame):
     Pro výpis očekává seznam slovníků reprezentujících jednotlivé zprávy. Viz třídu Sim.
     """
 
-    def __init__(self, parent: Emulator, comm: Comm, **kwargs):
+    def __init__(self, parent, comm, **kwargs):
         self.comm = comm
         self._filter = "tx/rx"
         self._freeze = False

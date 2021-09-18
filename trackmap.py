@@ -221,10 +221,6 @@ class TrackMap(tk.Frame):
                 if item["end"] < -1250:
                     self.remove(item=item)
 
-        # for name, c in SIGNAL_CODES.items():
-        #     if c == code:
-        #         self.variable.set(name)
-        #         break
         self.variable.set(code)
         if distance != 0:
             self.refresh()
