@@ -1,9 +1,11 @@
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Callable, Tuple, Any
 import os
 import tkinter as tk
 import tkinter.font as tf
 import numpy as np
-from abc import ABC, abstractmethod
-from typing import Callable, Tuple, Any, Iterable
+np.seterr(all="raise")
 
 
 class SpeedGauge(tk.Frame):
@@ -489,27 +491,49 @@ class ControlLeaver(tk.Frame):
         return int((self.leaver_position + 0.1) / 0.2)
 
 
+@dataclass
+class SwitchPosition:
+    """Holds information about a position of a switch. Can be used with any 'Switch', but 'position' must be given in
+    degrees for 'RotarySwitch' and in -1 to 1 float for 'LeaverSwitch'."""
+    position: float
+    value: Any
+    label: str = ""
+    momentary: bool = False
+
+
 class Switch(ABC, tk.Frame):
-    """Abstract clase for rotary as well as leaver switch GUI elements based on real designs used in locomotives."""
+    """Abstract class for rotary as well as leaver switch GUI elements based on real designs used in locomotives."""
 
     @abstractmethod
     def __init__(self, parent, *args, **kwargs):
         try:
             self.positions = kwargs.pop("positions")
-            self.labels = kwargs.pop("labels")
-            self.values = kwargs.pop("values")
+            # self.positions = kwargs.pop("positions")
+            # self.labels = kwargs.pop("labels")
+            # self.values = kwargs.pop("values")
         except IndexError:
-            raise ValueError("Missing either 'type', 'positions', 'values' or 'icons' in s Switch initializer!")
-        self.variable = kwargs.pop("variable", None)
+            raise ValueError("Missing either 'type', 'positions', 'values' or 'icons' in a Switch initializer!")
+        # if len(self.positions) != len(self.values):
+        #     raise ValueError("Incompatible 'values' and 'positions'! Different number of elements.")
+        self.variable = kwargs.pop("variable", tk.DoubleVar())
         self.color = kwargs.pop("color", "black")
-        self.default = kwargs.pop("default", 0)
-        self.size = kwargs.pop("size", 100)
+        default = kwargs.pop("default", SwitchPosition(position=0, value=0))
+        self.position = default.position
+        self.block = kwargs.pop("block", None)
+        self.size = kwargs.pop("size", 200)
         super().__init__(parent, *args, **kwargs)
         self.graphic = None
         self.canvas = tk.Canvas(self, width=self.size, height=self.size)
         self.canvas.grid()
+        self.drag_info = {"mark": np.zeros(2, int),
+                          "center": np.array([self.size / 2, self.size / 2]),
+                          "active": False}
+        self.canvas.tag_bind("graphic", "<ButtonPress-1>", self.mark)
+        self.canvas.bind("<B1-Motion>", self.drag)
+        self.canvas.bind("<ButtonRelease-1>", self.release)
 
         self.q = self.size / 200
+        self.label_font = tf.Font(self, family="Gischa", size=int(-20 * self.q), weight="bold")
 
         top_left = (self.size / 2 + self.q * 70, self.size / 2 + self.q * 70)
         bottom_right = (self.size / 2 - self.q * 70, self.size / 2 - self.q * 70)
@@ -519,20 +543,19 @@ class Switch(ABC, tk.Frame):
         self.canvas.create_oval(top_left, bottom_right, fill="black", width=0)
 
     @abstractmethod
-    def transform(self, value) -> Iterable[Iterable[Callable[[Any], Any], ...], Tuple[Any, ...]]:
-        pass
-
-    @abstractmethod
-    def mark(self, event):
+    def transform(self, value) -> Tuple[Tuple[Callable[[Any], Any], ...], Tuple[Any, ...]]:
         pass
 
     @abstractmethod
     def drag(self, event):
         pass
 
-    @abstractmethod
+    def mark(self, event):
+        self.drag_info["mark"] = np.array([event.x, event.y], int)
+        self.drag_info["active"] = True
+
     def release(self, *_):
-        pass
+        self.drag_info["active"] = False
 
     def draw(self, position):
         """NOT an abstract method! Subclasses can use this implementation for drawing on canvas."""
@@ -543,6 +566,18 @@ class Switch(ABC, tk.Frame):
 
 class RotarySwitch(Switch):
 
+    @staticmethod
+    def circle_distance(a, b):
+        a, b = (a, b) if a <= b else (b, a)
+        return min(b - a, a + 360 - b)
+
+    @staticmethod
+    def in_arc(start, end, value):
+        if start > end:
+            return not end < value < start
+        else:
+            return start <= value <= end
+
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.vertices = np.array([
@@ -552,9 +587,22 @@ class RotarySwitch(Switch):
             [80 * self.q, -12 * self.q, 1],
             [-45 * self.q, -12 * self.q, 1]
         ])
-        if len(self.positions) != len(self.values):
-            raise ValueError("Incompatible 'values' and 'positions'! Different number of elements.")
-        self.draw(self.default)
+        for pos in self.positions:
+            pos.position %= 360
+        # self.positions = tuple([i % 360 for i in self.positions])
+        # for position, label in zip(self.positions, self.labels):
+        #     x, y = np.sin(np.deg2rad(position)) * self.q * 85, -np.cos(np.deg2rad(position)) * self.q * 85
+        #     x, y = x + self.size / 2, y + self.size / 2
+        #     self.canvas.create_text(x, y, text=label, font=self.label_font)
+        for position in self.positions:
+            x = np.sin(np.deg2rad(position.position)) * self.q * 85
+            y = -np.cos(np.deg2rad(position.position)) * self.q * 85
+            x, y = x + self.size / 2, y + self.size / 2
+            self.canvas.create_text(x, y, text=position.label, font=self.label_font)
+        if self.block is not None:
+            from_, to = self.block
+            self.block = (from_ % 360, to % 360)
+        self.draw(self.position)
 
     def transform(self, value):
         matrix = np.array([
@@ -566,14 +614,54 @@ class RotarySwitch(Switch):
         render_info = [(self.canvas.create_polygon, [tuple(vertex) for vertex in transformed_vertices])]
         return render_info
 
-    def mark(self, event):
-        pass
-
     def drag(self, event):
-        pass
+        if not self.drag_info["active"]:
+            return
+        trg = np.array([event.x, event.y])
+        v0 = self.drag_info["mark"] - self.drag_info["center"]
+        v1 = trg - self.drag_info["center"]
+        self.drag_info["mark"] = trg
+        dot = np.dot(v0, v1)
+        if dot != 0:
+            angle = np.rad2deg(np.arccos(dot / np.linalg.norm(v1) / np.linalg.norm(v0)))
+            if np.cross(v0, v1) < 0:
+                angle *= -1
+            trg_pos = (self.position + angle) % 360
+            from_, to = self.block
+            if angle >= 0:
+                self.position = from_ if RotarySwitch.in_arc(self.position, trg_pos, from_) else trg_pos
+            else:
+                self.position = to if RotarySwitch.in_arc(trg_pos, self.position, to) else trg_pos
+        self.variable.set(self.pos2val(self.position))
+        self.draw(self.position)
+
+    def val2pos(self, value):
+        for position in self.positions:
+            if position.value == value:
+                return position.position
+        # for val, pos in zip(self.values, self.positions):
+        #     if value == val:
+        #         return pos
+
+    def pos2val(self, position):
+        nearest = None
+
+        # value = None
+        distance = float('inf')
+        # for val, pos in zip(self.values, self.positions):
+        #     if RotarySwitch.circle_distance(pos, position) <= distance:
+        #         distance = RotarySwitch.circle_distance(pos, position)
+        #         value = val
+        for pos in self.positions:
+            if RotarySwitch.circle_distance(pos.position, position) <= distance:
+                distance = RotarySwitch.circle_distance(pos.position, position)
+                nearest = pos
+        return nearest.value
 
     def release(self, *_):
-        pass
+        super().release()
+        self.position = self.val2pos(self.variable.get())
+        self.draw(self.position)
 
 
 class LeaverSwitch(Switch):
@@ -584,7 +672,7 @@ class LeaverSwitch(Switch):
             [-30 * self.q, -25 * self.q, 1],
             [30 * self.q, 25 * self.q, 1]
         ])
-        self.draw(self.default)
+        self.draw(self.position)
 
     def transform(self, value):
         render_info = []
@@ -605,14 +693,11 @@ class LeaverSwitch(Switch):
         render_info.append((self.canvas.create_rectangle, [tuple(vertex) for vertex in transformed_vertices]))
         return render_info
 
-    def mark(self, event):
-        pass
-
     def drag(self, event):
-        pass
-
-    def release(self, *_):
-        pass
+        if self.drag_info["active"]:
+            trg = self.drag_info["initial_position"] * self.size / 2 + (self.drag_info["mark"][1] - event.y)
+            self.draw(trg / self.size * 2)
+            self.variable.set(trg / self.size * 2)
 
 
 def main():
@@ -622,8 +707,25 @@ def main():
     TractiveEffortGauge(root).grid(row=0, column=1)
     ControlLeaver(root, img_path=img_path).grid(row=1, column=0)
     PressureGauge(root).grid(row=1, column=1)
-    RotarySwitch(root, positions=(), labels=(), values=(), default=-45).grid(row=0, column=2)
-    LeaverSwitch(root, positions=(), labels=(), values=(), default=1).grid(row=0, column=3)
+    var = tk.IntVar()
+    var.trace("w", lambda *_: print(var.get()))
+    positions = (
+        SwitchPosition(position=0, label="0", value=0),
+        SwitchPosition(position=90, label="1", value=1),
+        # SwitchPosition(position=180, label="Z", value=-5),
+    )
+    RotarySwitch(root,
+                 positions=positions, variable=var,
+                 block=(180, 0), default=positions[0],
+                 size=100).grid(row=0, column=2)
+    positions = (
+        SwitchPosition(position=-1, label="Z", value=-1),
+        SwitchPosition(position=0, label="0", value=0),
+        SwitchPosition(position=1, label="P", value=1),
+    )
+    LeaverSwitch(root,
+                 positions=positions,
+                 size=100).grid(row=0, column=3)
 
     root.mainloop()
 
