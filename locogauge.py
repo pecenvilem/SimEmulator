@@ -507,18 +507,14 @@ class Switch(ABC, tk.Frame):
     @abstractmethod
     def __init__(self, parent, *args, **kwargs):
         try:
-            self.positions = kwargs.pop("positions")
-            # self.positions = kwargs.pop("positions")
-            # self.labels = kwargs.pop("labels")
-            # self.values = kwargs.pop("values")
+            self.notches = kwargs.pop("notches")
         except IndexError:
-            raise ValueError("Missing either 'type', 'positions', 'values' or 'icons' in a Switch initializer!")
-        # if len(self.positions) != len(self.values):
-        #     raise ValueError("Incompatible 'values' and 'positions'! Different number of elements.")
+            raise ValueError("Missing 'notches' in a Switch initializer!")
         self.variable = kwargs.pop("variable", tk.DoubleVar())
         self.color = kwargs.pop("color", "black")
         default = kwargs.pop("default", SwitchPosition(position=0, value=0))
         self.position = default.position
+        self.notch = default
         self.block = kwargs.pop("block", None)
         self.size = kwargs.pop("size", 200)
         super().__init__(parent, *args, **kwargs)
@@ -550,18 +546,23 @@ class Switch(ABC, tk.Frame):
     def drag(self, event):
         pass
 
+    @abstractmethod
+    def pos2notch(self, position, exclude_momentary=False):
+        pass
+
     def mark(self, event):
         self.drag_info["mark"] = np.array([event.x, event.y], int)
         self.drag_info["active"] = True
 
     def release(self, *_):
-        self.drag_info["active"] = False
+        self.notch = self.pos2notch(self.position, True)
+        self.position = self.notch.position
+        self.draw(self.position)
 
     def draw(self, position):
-        """NOT an abstract method! Subclasses can use this implementation for drawing on canvas."""
         self.canvas.delete("graphic")
         for renderer, element in self.transform(position):
-            renderer(element, fill=self.color, tag="graphic", outline="gray")
+            renderer(*element, fill=self.color, tag="graphic", outline="gray")
 
 
 class RotarySwitch(Switch):
@@ -587,18 +588,12 @@ class RotarySwitch(Switch):
             [80 * self.q, -12 * self.q, 1],
             [-45 * self.q, -12 * self.q, 1]
         ])
-        for pos in self.positions:
+        for pos in self.notches:
             pos.position %= 360
-        # self.positions = tuple([i % 360 for i in self.positions])
-        # for position, label in zip(self.positions, self.labels):
-        #     x, y = np.sin(np.deg2rad(position)) * self.q * 85, -np.cos(np.deg2rad(position)) * self.q * 85
-        #     x, y = x + self.size / 2, y + self.size / 2
-        #     self.canvas.create_text(x, y, text=label, font=self.label_font)
-        for position in self.positions:
-            x = np.sin(np.deg2rad(position.position)) * self.q * 85
-            y = -np.cos(np.deg2rad(position.position)) * self.q * 85
+        for notch in self.notches:
+            x, y = np.sin(np.deg2rad(notch.position)) * self.q * 85, -np.cos(np.deg2rad(notch.position)) * self.q * 85
             x, y = x + self.size / 2, y + self.size / 2
-            self.canvas.create_text(x, y, text=position.label, font=self.label_font)
+            self.canvas.create_text(x, y, text=notch.label, font=self.label_font)
         if self.block is not None:
             from_, to = self.block
             self.block = (from_ % 360, to % 360)
@@ -627,77 +622,95 @@ class RotarySwitch(Switch):
             if np.cross(v0, v1) < 0:
                 angle *= -1
             trg_pos = (self.position + angle) % 360
-            from_, to = self.block
-            if angle >= 0:
-                self.position = from_ if RotarySwitch.in_arc(self.position, trg_pos, from_) else trg_pos
-            else:
-                self.position = to if RotarySwitch.in_arc(trg_pos, self.position, to) else trg_pos
-        self.variable.set(self.pos2val(self.position))
+            if self.block is not None:
+                from_, to = self.block
+                if angle >= 0:
+                    self.position = from_ if RotarySwitch.in_arc(self.position, trg_pos, from_) else trg_pos
+                else:
+                    self.position = to if RotarySwitch.in_arc(trg_pos, self.position, to) else trg_pos
+        self.notch = self.pos2notch(self.position)
+        self.variable.set(self.notch.value)
         self.draw(self.position)
 
-    def val2pos(self, value):
-        for position in self.positions:
-            if position.value == value:
-                return position.position
-        # for val, pos in zip(self.values, self.positions):
-        #     if value == val:
-        #         return pos
-
-    def pos2val(self, position):
+    def pos2notch(self, position, exclude_momentary=False):
         nearest = None
-
-        # value = None
         distance = float('inf')
-        # for val, pos in zip(self.values, self.positions):
-        #     if RotarySwitch.circle_distance(pos, position) <= distance:
-        #         distance = RotarySwitch.circle_distance(pos, position)
-        #         value = val
-        for pos in self.positions:
-            if RotarySwitch.circle_distance(pos.position, position) <= distance:
-                distance = RotarySwitch.circle_distance(pos.position, position)
-                nearest = pos
-        return nearest.value
-
-    def release(self, *_):
-        super().release()
-        self.position = self.val2pos(self.variable.get())
-        self.draw(self.position)
+        for notch in self.notches:
+            if exclude_momentary and notch.momentary:
+                continue
+            if RotarySwitch.circle_distance(notch.position, position) <= distance:
+                distance = RotarySwitch.circle_distance(notch.position, position)
+                nearest = notch
+        return nearest
 
 
 class LeaverSwitch(Switch):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
+        self.head_height = kwargs.pop("head_height", 50)
+        self.head_width = kwargs.pop("head_width", 60)
         self.vertices = np.array([
-            [-30 * self.q, -25 * self.q, 1],
-            [30 * self.q, 25 * self.q, 1]
+            [- self.head_width / 2 * self.q, - self.head_height / 2 * self.q, 1],
+            [self.head_width / 2 * self.q, self.head_height / 2 * self.q, 1]
         ])
+        for notch in self.notches:
+            x, y = self.size / 2 + self.q * 85, self.pos2canvas(notch.position)
+            self.canvas.create_text(x, y, text=notch.label, font=self.label_font)
         self.draw(self.position)
 
     def transform(self, value):
-        render_info = []
-        value *= 0.8
-        value = min(value, 0.8)
-        value = max(-0.8, value)
         matrix = np.array([
             [np.cos(0), -np.sin(0), self.size / 2],
-            [np.sin(0), np.cos(0), self.size * (1 - value) / 2],
+            [np.sin(0), np.cos(0), self.pos2canvas(self.position)],
             [0, 0, 1]
         ])
         # POLE for the leaver
-        transformed_vertices = ((self.size / 2 - self.q * 20, self.size / 2),
-                                (self.size / 2 + self.q * 20, self.size * (1 - value) / 2))
-        render_info.append((self.canvas.create_rectangle, tuple(transformed_vertices)))
+        pole_vertices = ((self.size / 2 - self.q * 20, self.size / 2),
+                        (self.size / 2 + self.q * 20, self.size * (1 - value) / 2))
         # leaver's HEAD
-        transformed_vertices = (np.delete(matrix @ vertex.T, 2).astype(int) for vertex in self.vertices)
-        render_info.append((self.canvas.create_rectangle, [tuple(vertex) for vertex in transformed_vertices]))
+        head_vertices = (np.delete(matrix @ vertex.T, 2).astype(int) for vertex in self.vertices)
+        render_info = [
+            (self.canvas.create_rectangle, pole_vertices),
+            (self.canvas.create_rectangle, [tuple(vertex) for vertex in head_vertices])
+        ]
         return render_info
 
     def drag(self, event):
-        if self.drag_info["active"]:
-            trg = self.drag_info["initial_position"] * self.size / 2 + (self.drag_info["mark"][1] - event.y)
-            self.draw(trg / self.size * 2)
-            self.variable.set(trg / self.size * 2)
+        if not self.drag_info["active"]:
+            return
+        _, y = self.drag_info["mark"]
+        self.drag_info["mark"] = np.array([event.x, event.y])
+        _min, _max = self.q * self.head_height / 2, self.size - self.q * self.head_height / 2
+        delta = event.y - y
+        coord = self.pos2canvas(self.position)
+        coord = max(_min, min(_max, coord + delta))
+        position = self.canvas2pos(coord)
+        if self.block is not None:
+            _from, to = self.block
+            if _from < position < to:
+                position = self.position
+        self.position = position
+        self.notch = self.pos2notch(self.position)
+        self.variable.set(self.notch.value)
+        self.draw(self.position)
+
+    def pos2notch(self, position, exclude_momentary=False):
+        nearest = None
+        distance = float('inf')
+        for notch in self.notches:
+            if exclude_momentary and notch.momentary:
+                continue
+            if abs(notch.position - position) <= distance:
+                distance = abs(notch.position - position)
+                nearest = notch
+        return nearest
+
+    def canvas2pos(self, y_coord):
+        return (2 * y_coord - self.size) / (self.head_height * self.q - self.size)
+
+    def pos2canvas(self, position):
+        return (self.size + (self.head_height * self.q - self.size) * position) / 2
 
 
 def main():
@@ -707,24 +720,22 @@ def main():
     TractiveEffortGauge(root).grid(row=0, column=1)
     ControlLeaver(root, img_path=img_path).grid(row=1, column=0)
     PressureGauge(root).grid(row=1, column=1)
-    var = tk.IntVar()
-    var.trace("w", lambda *_: print(var.get()))
     positions = (
         SwitchPosition(position=0, label="0", value=0),
         SwitchPosition(position=90, label="1", value=1),
-        # SwitchPosition(position=180, label="Z", value=-5),
+        SwitchPosition(position=180, label="Z", value=-5, momentary=True),
     )
     RotarySwitch(root,
-                 positions=positions, variable=var,
+                 notches=positions,
                  block=(180, 0), default=positions[0],
                  size=100).grid(row=0, column=2)
     positions = (
         SwitchPosition(position=-1, label="Z", value=-1),
         SwitchPosition(position=0, label="0", value=0),
-        SwitchPosition(position=1, label="P", value=1),
+        SwitchPosition(position=1, label="P", value=1)
     )
     LeaverSwitch(root,
-                 positions=positions,
+                 notches=positions, block=(-1, 0),
                  size=100).grid(row=0, column=3)
 
     root.mainloop()
