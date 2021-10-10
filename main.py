@@ -1,6 +1,14 @@
+from tkinter.font import Font
+from abc import ABC, abstractmethod
+from locogauge import SpeedGauge, TractiveEffortGauge, PressureGauge, ControlLeaver, RotarySwitch, SwitchPosition, \
+    LeaverSwitch
+from trackmap import TrackMap
+
 import tkinter as tk
 import tkinter.messagebox as msb
 import tkinter.ttk as ttk
+import paho.mqtt.client as mqtt
+
 import numpy as np
 import serial
 from serial.tools.list_ports import comports as list_ports
@@ -13,9 +21,6 @@ import json
 import csv
 import random
 
-from locogauge import SpeedGauge, TractiveEffortGauge, PressureGauge, ControlLeaver
-from trackmap import TrackMap
-
 MAX_TR_BR_APPL = 3.8    # bar
 MAX_DIR_BR_APPL = 6     # bar
 MAX_TL_PRESS = 5        # bar
@@ -24,7 +29,7 @@ MAX_TL_PRESS = 5        # bar
 DIR = os.getcwd()
 IMG = os.path.join(DIR, "img")
 MAIN_ICON = os.path.join(IMG, "dsfd.ico")
-CAN_CONFIG = os.path.join(DIR, "can_config.json")
+COMM_CONFIG = os.path.join(DIR, "comm_config.json")
 REGISTERS = os.path.join(DIR, "registers.csv")
 BITS = os.path.join(DIR, "bits.csv")
 HJP = os.path.join(IMG, "hjp")
@@ -53,7 +58,7 @@ class SCodeVariable(tk.StringVar):
         return self.SIGNAL_CODES[super().get()]
 
 
-class Sim(object):
+class Sim:
     """Slouží k fyzikální simulaci pohybu vlaku"""
 
     MASS = 200  # t
@@ -77,8 +82,8 @@ class Sim(object):
     LOCO_DEDB = LOCO_MAX_EDB / 6  # kN/s
     LOCO_TRACTION_DELAY = 0.4  # s
 
-    @classmethod
-    def mu(cls, speed):
+    @staticmethod
+    def mu(speed):
         """Vypočítá součinitel adheze pro danou rychlost pohybu"""
         return (9000 / (speed * 3.6 + 42) + 116) * 1e-3
 
@@ -159,6 +164,7 @@ class Sim(object):
             if not self._pause:
                 # LOAD values from input variables
                 epv = self.controller.comm_variables["EP_VALVE"].get()
+                etcs_brake = self.controller.comm_variables["BRAKE"].get()
                 if not slip:
                     speed = self.controller.comm_variables["SPEED"].get() / 3.6  # m/s
                 tl = self.controller.comm_variables["TRAIN_LINE_PRESSURE"].get()
@@ -199,6 +205,13 @@ class Sim(object):
 
                 if direction == 0:
                     traction = "off"
+
+                # ETCS service brake
+                if etcs_brake == 1:
+                    if tl > 3.5:
+                        train_brake = "apply"
+                    if traction_indication > 0:
+                        traction = "-"
 
                 # TRACTION & EDB
                 if traction == "+":
@@ -252,7 +265,7 @@ class Sim(object):
                         traction_indication = -min(abs(traction_indication), abs(self.power / speed))
 
                 # ATP intervention
-                if epv:
+                if epv or etcs_brake == 2:
                     train_brake = "emergency"
                     traction = "off"
                     edb = "full"
@@ -291,7 +304,7 @@ class Sim(object):
 
                 # WHEEL SLIP
                 o_v = (self.c + self.b * abs(speed) * 3.6 + self.a * (speed * 3.6) ** 2) * self.mass / 1000 * 9.81
-                ft = 88 * 1000 * 9.81 * self.mu(abs(speed)) * self.adhes_util
+                ft = 88 * 1000 * 9.81 * Sim.mu(abs(speed)) * self.adhes_util
                 if max(traction_indication, -traction_indication + direct_brake) > ft:
                     self.controller.sim_variables["SLIP"].set(True)
                     slip = True
@@ -330,7 +343,150 @@ class Sim(object):
             time.sleep(0.01)
 
 
-class Comm(object):
+class Comm(ABC):
+
+    def __init__(self, controller):
+        self.controller = controller
+        self._run = False
+        self.paused = True
+        self.log = []
+        self.msg_handles = {}
+        self.thread = threading.Thread()
+        self.comm_config = {}
+        # TODO - Create method 'config' that checks if passed 'config_data' contains all information needed
+        #  for this way of communication
+
+    @abstractmethod
+    def get_tkinter_pane(self, parent):
+        pass
+
+    @abstractmethod
+    def send(self, msg_type, **kwargs):
+        pass
+
+    @abstractmethod
+    def config(self, config_data):
+        pass
+
+    def attach_handle(self, msg_type, handler, *args, **kwargs):
+        """Uloží callback, který je volán při přijetí zprávy s daným ID."""
+        self.msg_handles[msg_type] = {
+            "handler": handler,
+            "args": args,
+            "kwargs": kwargs
+        }
+
+    @abstractmethod
+    def start(self):
+        pass
+
+    @abstractmethod
+    def run(self):
+        pass
+
+    @abstractmethod
+    def resume(self):
+        pass
+
+    @abstractmethod
+    def pause(self):
+        pass
+
+    @abstractmethod
+    def stop(self):
+        pass
+
+
+class CommPane(tk.Frame, ABC):
+    pass
+
+
+class DummyComm(Comm):
+    """Testovací komunikační kanál. Zprávy nejsou odesílány pouze vypisovány do logu."""
+
+    def get_tkinter_pane(self, parent):
+        return DummyPane(parent, self)
+
+    def __init__(self, controller):
+        super().__init__(controller)
+
+    def __del__(self):
+        self.stop()
+
+    def config(self, config_data):
+        self.comm_config = config_data
+
+    def send(self, msg_type, **kwargs):
+        """Odešle CAN zprávu převodníku po seriovém portu."""
+        data = kwargs.get("data", [])
+        rtr = kwargs.get("rtr", False)
+        msg_format = self.comm_config[msg_type]
+
+        # logging
+        msg = {
+            "type": msg_type,
+            "id": msg_format["id"],
+            "data": kwargs.get("data", None),
+            "bytes": data,
+            "time": datetime.datetime.now(),
+            "rtr": rtr,
+            "tx/rx": "tx"
+        }
+        self.log.append(msg)
+        self.controller.logger.display_record(msg)
+
+    def start(self):
+        """Spustí komunikační smyčku v novém vlákně"""
+        self.thread = threading.Thread(target=self.run)
+        self._run = True
+        self.thread.start()
+
+    def resume(self):
+        """Obnoví odesílání zpráv"""
+        self.controller.mp.run_stop_btn.config(text="Pauza", command=self.pause)
+        self.paused = False
+
+    def pause(self):
+        """Pozastaví odesílání zpráv"""
+        self.controller.mp.run_stop_btn.config(text="Spustit", command=self.resume)
+        self.paused = True
+
+    def stop(self):
+        """Zastaví komunikační smyčku"""
+        self._run = False
+        if self.thread.is_alive():
+            self.thread.join(timeout=0.5)
+
+    def run(self):
+        while self._run:
+            if len(self.log) > 200:
+                del self.log[0:-200]
+
+            if not self.paused:
+                for key, msg_type in self.comm_config.items():
+                    if time.time() >= msg_type["last_transmission"] + msg_type["period"] / 1000:
+                        data = self.controller.comm_variables[key].get()
+                        if key in ("EP_VALVE", "LS_INDICATOR"):
+                            continue
+                        self.send(key, data=data)
+                        msg_type["last_transmission"] = time.time()
+
+            time.sleep(1 / SERIAL_SCAN_RATE)
+
+
+class DummyPane(CommPane):
+
+    def __init__(self, parent, comm):
+        super().__init__(parent)
+        self.comm = comm
+
+    def connect(self):
+        """Otevře hlavní okno aplikace a připojí se k CAN převodníku."""
+        self.comm.start()
+        return True
+
+
+class SerialComm(Comm):
     """Komunikace po seriovém portu
     Pro simulátor ETCS nepotřebná, nutno předelat na MQQT klienta.
 
@@ -341,69 +497,59 @@ class Comm(object):
     read_register_callback = None
     read_register_data_output = None
 
-    def __init__(self, controller):
-        self.controller = controller
-        self._run = False
-        self.online = False
-        self.paused = True
-        self.ser = serial.Serial()
-        self.thread = threading.Thread()
-        self.CAN_config = {}
-        self.load_can_config(CAN_CONFIG)
-        self.msg_buffer = bytearray()
-        self.log = []
-        self.msg_handles = {}
+    def get_tkinter_pane(self, parent):
+        return SerialPane(parent, self)
 
-    def attach_handle(self, msg_type, handler, *args, **kwargs):
-        """Uloží callback, který je volán při přijetí CAN zprávy s daným ID."""
-        self.msg_handles[msg_type] = {
-            "handler": handler,
-            "args": args,
-            "kwargs": kwargs
-        }
+    def __init__(self, controller):
+        super().__init__(controller)
+        self.msg_buffer = bytearray()
+        self.ser = serial.Serial()
 
     def __del__(self):
         self.stop()
 
-    def load_can_config(self, filename):
-        """Načte data o CAN komunikaci ze souboru."""
-        try:
-            with open(filename) as f:
-                loaded_data = json.load(f)
-                if type(loaded_data) != dict:
-                    raise ValueError
-        except FileNotFoundError:
-            msb.showerror("CAN konfigurace", "Nenalezen soubor CAN konfigurace!")
-            self.controller.destroy()
-        except ValueError:
-            msb.showerror("CAN konfigurace", "Soubor CAN konfigurace se nepodařilo načíst!")
-            self.controller.destroy()
+    def config(self, config_data):
+        self.comm_config = config_data
 
-        data = dict()
-        for key in loaded_data:
-            try:
-                assert type(item := loaded_data[key]) == dict
-                assert type(item["id"]) == int
-                assert item["id"] <= 2**29
-                assert type(item.setdefault("length", 1)) == int
-                assert (item["length"] <= 8) and (item["length"] >= 1)
-                assert type(item.setdefault("multiplier", 1)) == int
-                assert type(item.setdefault("signed", False)) == bool
-            except AssertionError:
-                msb.showwarning("CAN konfigurace",
-                                "Chyba při načítání položky {} ze souboru CAN konfigurace!".format(key))
-                continue
-            else:
-                item.setdefault("period", 100)
-                item["last_transmission"] = time.time()
-                data[key] = item
-        self.CAN_config = data
+    # def load_config(self, filename):
+    #     """Načte data o CAN komunikaci ze souboru."""
+    #     try:
+    #         with open(filename) as f:
+    #             loaded_data = json.load(f)
+    #             if type(loaded_data) != dict:
+    #                 raise ValueError
+    #     except FileNotFoundError:
+    #         msb.showerror("CAN konfigurace", "Nenalezen soubor CAN konfigurace!")
+    #         self.controller.destroy()
+    #     except ValueError:
+    #         msb.showerror("CAN konfigurace", "Soubor CAN konfigurace se nepodařilo načíst!")
+    #         self.controller.destroy()
+    #
+    #     data = dict()
+    #     for key in loaded_data:
+    #         try:
+    #             assert type(item := loaded_data[key]) == dict
+    #             assert type(item["id"]) == int
+    #             assert item["id"] <= 2**29
+    #             assert type(item.setdefault("length", 1)) == int
+    #             assert (item["length"] <= 8) and (item["length"] >= 1)
+    #             assert type(item.setdefault("multiplier", 1)) == int
+    #             assert type(item.setdefault("signed", False)) == bool
+    #         except AssertionError:
+    #             msb.showwarning("CAN konfigurace",
+    #                             f"Chyba při načítání položky {key} ze souboru CAN konfigurace!")
+    #             continue
+    #         else:
+    #             item.setdefault("period", 100)
+    #             item["last_transmission"] = time.time()
+    #             data[key] = item
+    #     self.comm_config = data
 
     def send(self, msg_type, **kwargs):
         """Odešle CAN zprávu převodníku po seriovém portu."""
         data = kwargs.get("data", [])
         rtr = kwargs.get("rtr", False)
-        msg_format = self.CAN_config[msg_type]
+        msg_format = self.comm_config[msg_type]
         sidh = (msg_format["id"] >> 3) & 0b11111111
         sidl = (msg_format["id"] & 0b111) << 5  # SIDL for standart frame
         eid8 = None
@@ -436,11 +582,9 @@ class Comm(object):
             m = m.format(msg_format["length"], msg_type)
             raise ValueError(m) from e
 
-        # check whether communication was started (possible off-line testing of UI)
-        if self.online:
-            # send prepared bytes, those with None value are filtered out
-            if self.ser.out_waiting <= 500:
-                self.ser.write(bytearray(filter(lambda x: x is not None, [sidh, sidl, eid8, eid0, dlc, *data])))
+        # send prepared bytes, those with None value are filtered out
+        if self.ser.out_waiting <= 500:
+            self.ser.write(bytearray(filter(lambda x: x is not None, [sidh, sidl, eid8, eid0, dlc, *data])))
 
         # logging
         msg = {
@@ -455,11 +599,10 @@ class Comm(object):
         self.log.append(msg)
         self.controller.logger.display_record(msg)
 
-    def start(self, offline):
+    def start(self):
         """Spustí komunikační smyčku v novém vlákně"""
         self.thread = threading.Thread(target=self.run)
         self._run = True
-        self.online = offline
         self.thread.start()
 
     def resume(self):
@@ -483,9 +626,8 @@ class Comm(object):
         """Čte nastavení CAN převodníku
         (Pro ETCS nevýznané)
         """
-        if self.online:
-            self.read_register_callback = callback
-            self.ser.write(bytearray([ord('2'), 0b00000100]))
+        self.read_register_callback = callback
+        self.ser.write(bytearray([ord('2'), 0b00000100]))
 
     def write_registers(self, data):
         """Zapisuje nastavení CAN převodníku
@@ -506,13 +648,9 @@ class Comm(object):
                 del self.log[0:-200]
 
             if not self.paused:
-                for key, msg_type in self.CAN_config.items():
+                for key, msg_type in self.comm_config.items():
                     if time.time() >= msg_type["last_transmission"] + msg_type["period"] / 1000:
                         data = self.controller.comm_variables[key].get()
-                        # if key == "SIGNAL_CODE":
-                        #     data = SIGNAL_CODES[data]
-                        # elif key in ("EP_VALVE", "LS_INDICATOR"):
-                        #     continue
                         if key in ("EP_VALVE", "LS_INDICATOR"):
                             continue
                         self.send(key, data=data)
@@ -525,104 +663,239 @@ class Comm(object):
                     self.ser.write(bytearray([ord('4'), 0b00000100]))
                     hbt = time.time()
 
-            if self.online:
-                n = 2
-                rtr = False
-                rr = False  # READ_REGISTERS command
-                hb = False  # HEARTH_BEAT command
-                dlc = 0
-                try:
-                    if self.msg_buffer[1] & 0b00000100:  # COMMAND?
-                        if self.msg_buffer[0] == ord('2'):  # READ_REGISTERS command?
-                            n = 130
-                            rr = True
-                        elif self.msg_buffer[0] == ord('4'):  # HEARTH_BEAT command?
-                            n = 4
-                            hb = True
+            n = 2
+            rtr = False
+            rr = False  # READ_REGISTERS command
+            hb = False  # HEARTH_BEAT command
+            dlc = 0
+            try:
+                if self.msg_buffer[1] & 0b00000100:  # COMMAND?
+                    if self.msg_buffer[0] == ord('2'):  # READ_REGISTERS command?
+                        n = 130
+                        rr = True
+                    elif self.msg_buffer[0] == ord('4'):  # HEARTH_BEAT command?
+                        n = 4
+                        hb = True
+                else:
+                    if self.msg_buffer[1] & 0b00001000:  # is EXIDE set?
+                        n = 5
+                        if self.msg_buffer[4] & 0b01000000:  # is RTR set?
+                            rtr = True
                     else:
-                        if self.msg_buffer[1] & 0b00001000:  # is EXIDE set?
-                            n = 5
-                            if self.msg_buffer[4] & 0b01000000:  # is RTR set?
-                                rtr = True
-                        else:
-                            n = 3
-                            if self.msg_buffer[1] & 0b00010000:  # is SRR set?
-                                rtr = True
-                                n = 2
-                        if not rtr:
-                            dlc = self.msg_buffer[n-1] & 0b00001111
-                            n += dlc  # add received message length to the expected 'n' of bytes
-                    if len(self.msg_buffer) < n:
-                        raise IndexError  # given number of data-bytes was not yet received
-                except IndexError:
-                    n -= len(self.msg_buffer)
-                    if self.ser.in_waiting > 0:
-                        self.msg_buffer += self.ser.read(size=n)  # non-blocking read (provided Serial.timeout is 0)
-                        continue
+                        n = 3
+                        if self.msg_buffer[1] & 0b00010000:  # is SRR set?
+                            rtr = True
+                            n = 2
+                    if not rtr:
+                        dlc = self.msg_buffer[n-1] & 0b00001111
+                        n += dlc  # add received message length to the expected 'n' of bytes
+                if len(self.msg_buffer) < n:
+                    raise IndexError  # given number of data-bytes was not yet received
+            except IndexError:
+                n -= len(self.msg_buffer)
+                if self.ser.in_waiting > 0:
+                    self.msg_buffer += self.ser.read(size=n)  # non-blocking read (provided Serial.timeout is 0)
+                    continue
 
-                else:  # all bytes of current message/command received - now process it
-                    if rr:
-                        if self.read_register_callback:
-                            self.read_register_callback(self.msg_buffer[2:])
-                            self.read_register_callback = None
-                    elif hb:
-                        self.controller.mp.last_hbt_lbl.config(text=datetime.datetime.now().strftime("%H:%M:%S.%f"))
-                        self.controller.mp.tec_lbl.config(text=str(self.msg_buffer[2]))
-                        self.controller.mp.rec_lbl.config(text=str(self.msg_buffer[3]))
-                        error = False
+            else:  # all bytes of current message/command received - now process it
+                if rr:
+                    if self.read_register_callback:
+                        self.read_register_callback(self.msg_buffer[2:])
+                        self.read_register_callback = None
+                elif hb:
+                    self.controller.mp.last_hbt_lbl.config(text=datetime.datetime.now().strftime("%H:%M:%S.%f"))
+                    self.controller.mp.tec_lbl.config(text=str(self.msg_buffer[2]))
+                    self.controller.mp.rec_lbl.config(text=str(self.msg_buffer[3]))
+                    error = False
+                else:
+                    if error:
+                        self.msg_buffer = bytearray()
+                        continue
+                    msg = {"id": 0, "type": None, "data": None, "time": datetime.datetime.now(),
+                           "rtr": rtr, "tx/rx": "rx"}
+                    if self.msg_buffer[1] & 0b00001000:  # is EXIDE set?
+                        msg["id"] += (self.msg_buffer[1] & 0b00000011) << 27  # two LSB of SIDL are two MSB of ID
+                        msg["id"] += self.msg_buffer[2] << 19  # EID8
+                        msg["id"] += self.msg_buffer[3] << 11  # EID0
+                    msg["id"] += self.msg_buffer[0] << 3  # SIDH
+                    msg["id"] += (self.msg_buffer[1] & 0b11100000) >> 5  # SIDL
+                    msg_format = None
+                    for key, value in self.comm_config.items():  # search known message-IDs for the received one
+                        if msg["id"] == value["id"]:
+                            msg["type"] = key
+                            msg_format = value
+                            break
+                    if msg_format is None:
+                        #  msb.showwarning("CAN", "Neznámé ID CAN zprávy: {}". format(msg["id"]))
+                        error = True
+                        self.msg_buffer = bytearray()  # message was processed - clear buffer
+                        self.controller.logger.display_record(msg)  # save message to log
+                        continue
                     else:
-                        if error:
-                            self.msg_buffer = bytearray()
-                            continue
-                        msg = {"id": 0, "type": None, "data": None, "time": datetime.datetime.now(),
-                               "rtr": rtr, "tx/rx": "rx"}
-                        if self.msg_buffer[1] & 0b00001000:  # is EXIDE set?
-                            msg["id"] += (self.msg_buffer[1] & 0b00000011) << 27  # two LSB of SIDL are two MSB of ID
-                            msg["id"] += self.msg_buffer[2] << 19  # EID8
-                            msg["id"] += self.msg_buffer[3] << 11  # EID0
-                        msg["id"] += self.msg_buffer[0] << 3  # SIDH
-                        msg["id"] += (self.msg_buffer[1] & 0b11100000) >> 5  # SIDL
-                        msg_format = None
-                        for key, value in self.CAN_config.items():  # search known message-IDs for the received one
-                            if msg["id"] == value["id"]:
-                                msg["type"] = key
-                                msg_format = value
-                                break
-                        if msg_format is None:
-                            #  msb.showwarning("CAN", "Neznámé ID CAN zprávy: {}". format(msg["id"]))
+                        if (not rtr) and (dlc != msg_format["length"]):
+                            # msb.showerror("CAN",
+                            #               "DLC {} nesouhlasí s formátem CAN zprávy: {}".format(dlc, msg["type"]))
                             error = True
                             self.msg_buffer = bytearray()  # message was processed - clear buffer
                             self.controller.logger.display_record(msg)  # save message to log
                             continue
-                        else:
-                            if (not rtr) and (dlc != msg_format["length"]):
-                                # msb.showerror("CAN",
-                                #               "DLC {} nesouhlasí s formátem CAN zprávy: {}".format(dlc, msg["type"]))
-                                error = True
-                                self.msg_buffer = bytearray()  # message was processed - clear buffer
-                                self.controller.logger.display_record(msg)  # save message to log
-                                continue
-                        # decode data using info from identified message type
-                        msg["bytes"] = self.msg_buffer[-dlc:] if dlc != 0 else []
-                        msg["data"] = msg["bytes"]
-                        msg["data"] = int.from_bytes(msg["data"], byteorder="big", signed=msg_format["signed"])
-                        msg["data"] /= msg_format["multiplier"]
-                        self.log.append(msg)  # save message to log
-                        self.controller.logger.display_record(msg)  # save message to log
-                        # call appropriate message handle
-                        try:
-                            handle = self.msg_handles[msg["type"]].copy()
-                            handle["kwargs"]["rtr"] = msg["rtr"]
-                            handle["kwargs"]["data"] = msg["data"]
-                            handle["handler"](*handle["args"], **handle["kwargs"])
-                        except KeyError:
-                            # no handle attached to given message type
-                            pass
-                    self.msg_buffer = bytearray()  # message was processed - clear buffer
-                    if self.ser.in_waiting > 0:
-                        continue
+                    # decode data using info from identified message type
+                    msg["bytes"] = self.msg_buffer[-dlc:] if dlc != 0 else []
+                    msg["data"] = msg["bytes"]
+                    msg["data"] = int.from_bytes(msg["data"], byteorder="big", signed=msg_format["signed"])
+                    msg["data"] /= msg_format["multiplier"]
+                    self.log.append(msg)  # save message to log
+                    self.controller.logger.display_record(msg)  # save message to log
+                    # call appropriate message handle
+                    try:
+                        handle = self.msg_handles[msg["type"]].copy()
+                        handle["kwargs"]["rtr"] = msg["rtr"]
+                        handle["kwargs"]["data"] = msg["data"]
+                        handle["handler"](*handle["args"], **handle["kwargs"])
+                    except KeyError:
+                        # no handle attached to given message type
+                        pass
+                self.msg_buffer = bytearray()  # message was processed - clear buffer
+                if self.ser.in_waiting > 0:
+                    continue
             # wait given time before scanning the Serial input again
             time.sleep(1/SERIAL_SCAN_RATE)
+
+
+class SerialPane(CommPane):
+
+    def __init__(self, parent, comm):
+
+        super().__init__(parent)
+        self.ports_list = None
+        self.comm = comm
+        tk.Label(self, text="Port:").grid(row=1, column=1, sticky="ew")
+        self.port_lbox = tk.Listbox(self, width=40, selectmode="single")
+        self.refresh()
+        self.port_lbox.grid(row=2, column=1, sticky="ew")
+
+        self.ref_b = tk.Button(self, text="Obnovit seznam", command=self.refresh)
+        self.ref_b.grid(row=3, column=1, pady=5)
+
+    def refresh(self):
+        """Obnovení seznamu dostupných COM portů pro připojení."""
+        self.ports_list = list_ports()
+        self.port_lbox.delete(0, "end")
+        for index, port in enumerate(self.ports_list):
+            self.port_lbox.insert("end", f"{port.device} | {port.description}")
+
+    def connect(self):
+        """Otevře hlavní okno aplikace a připojí se k CAN převodníku."""
+        try:
+            port_index = self.port_lbox.curselection()
+            assert len(port_index) == 1
+            port_index = port_index[0]
+            self.comm.ser.port = self.ports_list[port_index].device
+            self.comm.ser.baudrate = BAUD_RATE
+            self.comm.ser.bytesize = BYTESIZE
+            self.comm.ser.parity = PARITY
+            self.comm.ser.stopbits = STOP_BITS
+            self.comm.ser.timeout = 0  # nonblocking reads
+            self.comm.ser.write_timeout = None  # blocking writes
+        except AssertionError:
+            msb.showerror(title="Chyba", message="Nebyl vybrán žádný port")
+            return False
+        except Exception as e:
+            msb.showerror(title="Chyba", message=repr(e))
+            return False
+        else:
+            self.comm.ser.open()
+            self.comm.start()
+            return True
+
+
+class MqttComm(Comm):
+
+    def __init__(self, controller):
+        super().__init__(controller)
+        self.host = None
+        self.port = None
+        self.mqtt = mqtt.Client(client_id="SimEmulator")
+
+    def get_tkinter_pane(self, parent):
+        return MqttPane(parent, self)
+
+    def send(self, msg_type, **kwargs):
+        self.mqtt.publish(msg_type, payload=kwargs["data"])
+
+    def config(self, config_data):
+        self.comm_config = config_data
+
+    def start(self):
+        self.mqtt.connect(self.host, self.port)
+        self.mqtt.subscribe("BRAKE")
+        self.mqtt.on_message = self.on_message
+        self.thread = threading.Thread(target=self.run)
+        self._run = True
+        self.paused = False
+        self.thread.start()
+
+    def on_message(self, client, userdata, message):
+        if message.topic == "BRAKE":
+            self.controller.comm_variables["EP_VALVE"].set(False)
+            if len(message.payload) != 1:
+                return
+            self.controller.comm_variables["BRAKE"].set(int(chr(message.payload[0])))
+
+    def run(self):
+        while self._run:
+            if len(self.log) > 200:
+                del self.log[0:-200]
+
+            if not self.paused:
+                self.mqtt.loop()
+                for key, msg_type in self.comm_config.items():
+                    if time.time() >= msg_type["last_transmission"] + msg_type["period"] / 1000:
+                        data = self.controller.comm_variables[key].get()
+                        if key in ("EP_VALVE", "LS_INDICATOR"):
+                            continue
+                        if msg_type["mqtt"]:
+                            self.send(key, data=data)
+                        msg_type["last_transmission"] = time.time()
+
+            time.sleep(1 / SERIAL_SCAN_RATE)
+
+    def resume(self):
+        pass
+
+    def pause(self):
+        pass
+
+    def stop(self):
+        pass
+
+
+class MqttPane(CommPane):
+
+    def __init__(self, parent, comm):
+
+        super().__init__(parent)
+        self.comm = comm
+
+        self.host = tk.StringVar(value="localhost")
+        self.port = tk.StringVar(value="1883")
+
+        tk.Label(self, text="Host:").grid(row=0, column=0)
+        tk.Entry(self, textvariable=self.host, width=15).grid(row=0, column=1)
+        tk.Label(self, text="Port:").grid(row=1, column=0)
+        tk.Entry(self, textvariable=self.port, width=6).grid(row=1, column=1)
+
+    def connect(self):
+        """Otevře hlavní okno aplikace a připojí se k CAN převodníku."""
+        try:
+            self.comm.host = self.host.get()
+            self.comm.port = int(self.port.get())
+        except ValueError:
+            msb.showerror(title="Chyba", message="Nerozpoznáno číslo portu!")
+            return False
+        else:
+            self.comm.start()
+            return True
 
 
 class Emulator(tk.Tk):
@@ -630,7 +903,9 @@ class Emulator(tk.Tk):
 
     def __init__(self, *args, **kwargs):
 
-        self.comm = Comm(self)
+        self.loaded_data = {}
+        self.load_config(COMM_CONFIG)
+        self.comm = None
         self.sim = Sim(self)
 
         tk.Tk.__init__(self, *args, **kwargs)
@@ -649,7 +924,6 @@ class Emulator(tk.Tk):
         # variables storing data to be transmitted to the simulator
         self.comm_variables = {
             "BATTERY": tk.BooleanVar(value=False),
-            # "SIGNAL_CODE": tk.StringVar(value="Bez kódu"),
             "SIGNAL_CODE": SCodeVariable(value="Bez kódu"),
             "SPEED": tk.DoubleVar(value=0),
             "DIRECTION_LEAVER": tk.IntVar(value=0),
@@ -661,6 +935,7 @@ class Emulator(tk.Tk):
             "LS_SWITCH": tk.IntVar(value=0),
             "LS_INDICATOR": tk.IntVar(value=0),
             "EP_VALVE": tk.BooleanVar(value=True),
+            "BRAKE": tk.IntVar(value=0),
             "CONTROL_SWITCH": tk.IntVar(value=0),
             "DRIVING_LEAVER": tk.IntVar(value=3),
             "WHISTLE": tk.BooleanVar(value=False),
@@ -685,15 +960,28 @@ class Emulator(tk.Tk):
             "ADHESION_UTILISATION": tk.StringVar(),
         }
 
+        self.logger = LoggerTreeView(self, self.comm)
+
+        self.mp = None
+
+        self.comm_variables["WHISTLE"].trace("w", lambda *_:  self.emp())
+        self.comm_variables["DRIVING_LEAVER"].trace("w", lambda *_:  self.emp())
+
+        self.cp = ConnectPage(self.container, self)
+        self.cp.grid(row=0, column=0, sticky="nsew")
+
+        self.cp.tkraise()
+
+    def connect(self, comm):
+        self.comm = comm
+        self.comm.config(self.loaded_data)
+
         self.mp = MainPage(self.container, self)
         self.mp.grid(row=0, column=0, sticky="nsew")
-
         for name, var in self.comm_variables.items():
             self.comm.attach_handle(name, self.generic_rtr_response, type=name)
 
         self.sim_variables["SLIP"].trace("w", lambda *_: self.mp.set_slip(self.sim_variables["SLIP"].get()))
-        self.comm_variables["WHISTLE"].trace("w", lambda *_:  self.emp())
-        self.comm_variables["DRIVING_LEAVER"].trace("w", lambda *_:  self.emp())
 
         var = self.comm_variables["LS_INDICATOR"]
         self.comm.attach_handle("LS_INDICATOR", lambda v=var, **kw: v.set(int(kw["data"])))
@@ -703,10 +991,41 @@ class Emulator(tk.Tk):
         self.comm.attach_handle("EP_VALVE", lambda v=var, **kw: v.set(bool(kw["data"])))
         var.trace("w", lambda *_, v=var: self.mp.set_epv(bool(v.get())))
 
-        self.cp = ConnectPage(self.container, self)
-        self.cp.grid(row=0, column=0, sticky="nsew")
+        self.mp.tkraise()
 
-        self.cp.tkraise()
+    def load_config(self, filename):
+        """Načte data o CAN komunikaci ze souboru."""
+        try:
+            with open(filename) as f:
+                loaded_data = json.load(f)
+                if type(loaded_data) != dict:
+                    raise ValueError
+        except FileNotFoundError:
+            msb.showerror("CAN konfigurace", "Nenalezen soubor CAN konfigurace!")
+            self.close()
+        except ValueError:
+            msb.showerror("CAN konfigurace", "Soubor CAN konfigurace se nepodařilo načíst!")
+            self.close()
+
+        data = dict()
+        for key in loaded_data:
+            try:
+                assert type(item := loaded_data[key]) == dict
+                assert type(item["id"]) == int
+                assert item["id"] <= 2**29
+                assert type(item.setdefault("length", 1)) == int
+                assert (item["length"] <= 8) and (item["length"] >= 1)
+                assert type(item.setdefault("multiplier", 1)) == int
+                assert type(item.setdefault("signed", False)) == bool
+            except AssertionError:
+                msb.showwarning("CAN konfigurace",
+                                f"Chyba při načítání položky {key} ze souboru CAN konfigurace!")
+                continue
+            else:
+                item.setdefault("period", 100)
+                item["last_transmission"] = time.time()
+                data[key] = item
+        self.loaded_data = data
 
     def slip(self):
         """Zobrazí indikaci prokuzu kol na UI
@@ -726,9 +1045,6 @@ class Emulator(tk.Tk):
         else:
             self.comm_variables["EMP"].set(False)
 
-    def reset(self):
-        pass
-
     def generic_rtr_response(self, *_, **kwargs):
         """Reaguje na CAN remote request rámec
         (Pro ETCS nepotřebné)
@@ -745,11 +1061,10 @@ class Emulator(tk.Tk):
     def close(self):
         """Zastaví komunikaci a simulaci, zavře okno aplikace"""
         if self.comm.thread.is_alive():
-            if self.comm.online:
-                t = "COM port otevřen"
-                m = "Komunikace po sériovém portu stále probíhá. Opravdu přerušit?"
-                if not msb.askokcancel(title=t, message=m):
-                    return
+            t = "COM port otevřen"
+            m = "Komunikace po sériovém portu stále probíhá. Opravdu přerušit?"
+            if not msb.askokcancel(title=t, message=m):
+                return
             self.comm.stop()
         if self.sim.thread.is_alive():
             self.sim.stop()
@@ -895,7 +1210,6 @@ class MainPage(tk.Frame):
     def stop(self):
         """Zastavení komunikace a návrat na stránku pro připojení k simulátoru"""
         self.controler.comm.stop()
-        self.controler.cp.refresh()
         self.controler.cp.tkraise()
 
     def single_press(self, _):
@@ -1138,8 +1452,38 @@ class MainPage(tk.Frame):
         tk.Label(f, text="Brzdový válec").grid(row=1, column=0)
         ctr_lvr = ControlLeaver(driving, variable=self.controler.comm_variables["DRIVING_LEAVER"], img_path=HJP)
         ctr_lvr.grid(row=1, column=1)
-        indications = tk.LabelFrame(driving, text="Indikace")
-        indications.grid(row=2, column=1, ipadx=5, ipady=5)
+        switches = tk.Frame(driving)
+        switches.grid(row=2, column=1, ipadx=5, ipady=5)
+        RotarySwitch(switches,
+                     notches=[
+                         SwitchPosition(position=0, label="0", value=0),
+                         SwitchPosition(position=90, label="1", value=1)],
+                     default=SwitchPosition(position=0, label="0", value=0),
+                     block=(90, 360), variable=self.controler.comm_variables["BATTERY"],
+                     size=100).grid(row=0, column=0)
+        tk.Label(switches, text="Baterie").grid(row=1, column=0)
+
+        RotarySwitch(switches,
+                     notches=[
+                         SwitchPosition(position=0, label="0", value=0),
+                         SwitchPosition(position=45, label="1", value=1)],
+                     default=SwitchPosition(position=0, label="0", value=0),
+                     block=(45, 360), variable=self.controler.comm_variables["CONTROL_SWITCH"],
+                     size=100).grid(row=0, column=1)
+        tk.Label(switches, text="Řízení").grid(row=1, column=1)
+
+        LeaverSwitch(switches,
+                     notches=[
+                         SwitchPosition(position=-1, label="Z", value=-1),
+                         SwitchPosition(position=0, label="0", value=0),
+                         SwitchPosition(position=1, label="P", value=1)],
+                     default=SwitchPosition(position=0, label="0", value=0),
+                     variable=self.controler.comm_variables["DIRECTION_LEAVER"],
+                     size=100).grid(row=0, column=2)
+        tk.Label(switches, text="Směr").grid(row=1, column=2)
+
+        indications = tk.LabelFrame(switches, text="Indikace")
+        indications.grid(row=10, column=0, columnspan=3)
         indications.grid_rowconfigure(0, weight=1)
         indications.grid_rowconfigure(10, weight=1)
         indications.grid_columnconfigure(0, weight=1)
@@ -1216,56 +1560,34 @@ class ConnectPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        self.ports_list = None
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(10, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(10, weight=1)
 
-        tk.Label(self, text="Port:").grid(row=1, column=1, sticky="ew")
-        self.port_lbox = tk.Listbox(self, width=40, selectmode="single")
-        self.refresh()
-        self.port_lbox.grid(row=2, column=1, sticky="ew")
+        self.comms = [
+            ("CAN", SerialComm(self.controller), None),
+            ("MQTT", MqttComm(self.controller), None),
+            ("Test", DummyComm(self.controller), None)
+        ]
 
-        self.ref_b = tk.Button(self, text="Obnovit seznam", command=self.refresh)
-        self.ref_b.grid(row=3, column=1, pady=5)
-        self.con_b = tk.Button(self, text="Připojit", command=self.connect)
-        self.con_b.grid(row=4, column=1, pady=5)
-        self.preview_b = tk.Button(self, text="Náhled ovládacího panelu", command=self.preview)
-        self.preview_b.grid(row=5, column=1, pady=5)
+        tk.Label(self, text="Komunikace:", font=Font(family="Helvetica", size=18)).grid(row=1, column=1, sticky="ew")
+        self.ntb = ttk.Notebook(self)
+        self.ntb.grid(row=2, column=1)
+        tk.Button(self, text="Připojit", command=self.connect).grid(row=3, column=1)
 
-    def refresh(self):
-        """Obnovení seznamu dostupných COM portů pro připojení."""
-        self.ports_list = list_ports()
-        self.port_lbox.delete(0, "end")
-        for index, port in enumerate(self.ports_list):
-            self.port_lbox.insert("end", f"{port.device} | {port.description}")
-
-    def preview(self):
-        """Otevře hlavní okno aplikace bez připojení k CAN převodníku."""
-        self.controller.comm.start(False)
-        self.controller.mp.tkraise()
+        for index, data in enumerate(self.comms):
+            text, comm, pane = data
+            pane = comm.get_tkinter_pane(self.ntb)
+            pane.grid()
+            self.ntb.add(pane, text=text, pad=5)
+            self.comms[index] = (text, comm, pane)
 
     def connect(self):
         """Otevře hlavní okno aplikace a připojí se k CAN převodníku."""
-        try:
-            port_index = self.port_lbox.curselection()
-            assert len(port_index) == 1
-            port_index = port_index[0]
-            self.controller.comm.ser.port = self.ports_list[port_index].device
-            self.controller.comm.ser.baudrate = BAUD_RATE
-            self.controller.comm.ser.bytesize = BYTESIZE
-            self.controller.comm.ser.parity = PARITY
-            self.controller.comm.ser.stopbits = STOP_BITS
-            self.controller.comm.ser.timeout = 0  # nonblocking reads
-            self.controller.comm.ser.write_timeout = None  # blocking writes
-        except AssertionError:
-            msb.showerror(title="Chyba", message="Nebyl vybrán žádný port")
-        except Exception as e:
-            msb.showerror(title="Chyba", message=repr(e))
-        else:
-            self.controller.comm.ser.open()
-            self.controller.comm.start(True)
+        _, comm, pane = self.comms[self.ntb.index("current")]
+        if pane.connect():
+            self.controller.connect(comm)
             self.controller.mp.tkraise()
 
 
@@ -1277,10 +1599,10 @@ class LoggerTreeView(tk.Frame):
     """
 
     def __init__(self, parent, comm, **kwargs):
+        super().__init__(parent)
         self.comm = comm
         self._filter = "tx/rx"
         self._freeze = False
-        super(LoggerTreeView, self).__init__(parent)
         kwargs.setdefault("show", "headings")
         kwargs.setdefault("height", 25)
         self.tw = ttk.Treeview(self, **kwargs)
@@ -1361,23 +1683,10 @@ class LoggerTreeView(tk.Frame):
             self.insert(message)
 
 
+# noinspection PyUnusedLocal
 def main(argv):
-    if "gauges_test" in argv:
-        root = tk.Tk()
-        v = tk.StringVar(value="Bez kódu")
-        w = TrackMap(root, variable=v)
-        w.set(2)
-        w.grid(row=1, column=0)
-
-        def update():
-            w.shift(0.25)
-            root.after(10, update)
-
-        root.after(10, update)
-        root.mainloop()
-    else:
-        emulator = Emulator()
-        emulator.mainloop()
+    emulator = Emulator()
+    emulator.mainloop()
 
 
 if __name__ == '__main__':

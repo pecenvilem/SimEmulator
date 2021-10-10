@@ -1,0 +1,126 @@
+{
+  "SPEED": {
+    "id": 1,
+    "length": 2,
+    "multiplier": 100,
+    "signed": true,
+    "period": 500,
+    "can": true,
+    "mqtt": true
+  },    
+  "TRAIN_LINE_PRESSURE": {
+    "id": 2,
+    "length": 1,
+    "multiplier": 20,
+    "period": 5000,
+    "can": true,
+    "mqtt": false
+  },     
+  "BRAKE_CYLINDER_PRESSURE": {
+    "id": 3,
+    "length": 1,
+    "multiplier": 20,
+    "period": 500,
+    "can": true,
+    "mqtt": false
+  },   
+  "SIGNAL_CODE": {
+    "id": 4,
+    "length": 1,
+    "period": 300,
+    "can": true,
+    "mqtt": false
+  },   
+  "VIGILANCE_BUTTON": {
+    "id": 5,
+    "length": 1,
+    "period": 100,
+    "can": true,
+    "mqtt": false
+  }, 
+  "DRIVING_LEAVER": {
+    "id": 6,
+    "length": 1,
+    "period": 3000,
+    "can": true,
+    "mqtt": false
+  }, 
+  "DIRECTION_LEAVER": {
+    "id": 7,
+    "length": 1,
+    "signed": true,
+    "period": 500,
+    "can": true,
+    "mqtt": true
+  },
+  "BRAKE": {
+    "id": 17,
+    "length": 1,
+    "period": 100,
+    "can": false,
+    "mqtt": false
+  },
+  "EP_VALVE": {
+    "id": 8,
+    "length": 1,
+    "period": 100,
+    "can": false,
+    "mqtt": false
+  }, 
+  "BRIGHTNESS": {
+    "id": 9,
+    "length": 1,
+    "period": 5000,
+    "can": true,
+    "mqtt": false
+  }, 
+  "VOLUME": {
+    "id": 10,
+    "length": 1,
+    "period": 5000,
+    "can": true,
+    "mqtt": false
+  },               
+  "LS_SWITCH": {
+    "id": 11,
+    "length": 1,
+    "period": 500,
+    "can": true,
+    "mqtt": false
+  },
+  "LS_INDICATOR": {
+    "id": 12,
+    "length": 1,
+    "can": false,
+    "mqtt": false
+  },
+  "CONTROL_SWITCH": {
+    "id": 13,
+    "length": 1,
+    "period": 5000,
+    "can": false,
+    "mqtt": true
+  },
+  "WHISTLE": {
+    "id": 14,
+    "length": 1,
+    "period": 5000,
+    "can": true,
+    "mqtt": false
+  },     
+  "BATTERY": {
+    "id": 15,
+    "length": 1,
+    "period": 300,
+    "can": true,
+    "mqtt": true
+  },
+  "EMP": {
+    "id": 16,
+    "length": 1,
+    "period": 500,
+    "can": true,
+    "mqtt": false
+  }
+}
+

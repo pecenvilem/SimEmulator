@@ -12,7 +12,7 @@ header = """// specifications for CAN data transmissions
 
 """
 
-with open("can_config.json", "rt") as f:
+with open("comm_config.json", "rt") as f:
     data = json.load(f)
 
 try:
@@ -22,7 +22,7 @@ except (FileNotFoundError, FileExistsError) as e:
 
 with open("can_config.h", "wt") as f:
     f.write(header)
-    f.write("// Auto-generated from 'can_config.json' file on: {}\n\n".format(time.strftime("%Y_%m_%d %H:%M")))
+    f.write("// Auto-generated from 'comm_config.json' file on: {}\n\n".format(time.strftime("%Y_%m_%d %H:%M")))
 
     for key in data:
         if type(item := data[key]) == dict:
