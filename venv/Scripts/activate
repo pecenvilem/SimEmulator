@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\VS\software\SimEmulator\venv"
+VIRTUAL_ENV="D:\VS\DSFD\simulator\VZ LS a Mirel\software\SimEmulator\venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

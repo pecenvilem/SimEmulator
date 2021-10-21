@@ -21,9 +21,9 @@ import json
 import csv
 import random
 
-MAX_TR_BR_APPL = 3.8    # bar
-MAX_DIR_BR_APPL = 6     # bar
-MAX_TL_PRESS = 5        # bar
+MAX_TR_BR_APPL = 3.8    # bar # TODO: PARAM
+MAX_DIR_BR_APPL = 6     # bar # TODO: PARAM
+MAX_TL_PRESS = 5        # bar # TODO: PARAM
 
 
 DIR = os.getcwd()
@@ -61,26 +61,26 @@ class SCodeVariable(tk.StringVar):
 class Sim:
     """Slouží k fyzikální simulaci pohybu vlaku"""
 
-    MASS = 200  # t
-    ACCELERATON = 0.9  # m/s/s
-    BRAKING_FORCE = MASS * ACCELERATON  # kN
-    FILLING_TIME = 7  # s
-    VENTING_TIME = 16  # s
-    POWER = 6400  # kW
-    SLOPE = 0  # promille
-    ADHESION_UTILISATION = 0.8
-    A = 0.00033
-    B = 0.0008
-    C = 1.35
-    TRAIN_LINE_DP = 0.20  # bar/s
-    TRAIN_LINE_VENT_TIME = 1.5  # s
-    LOCO_PARKING_BRAKE = 35  # kN
-    LOCO_PARKING_TIME = 2.5  # s
-    LOCO_MAX_EDB = 150  # kN
-    LOCO_MAX_TRACTION = 300  # kN
-    LOCO_DTRAX = LOCO_MAX_TRACTION / 6  # kN/s
-    LOCO_DEDB = LOCO_MAX_EDB / 6  # kN/s
-    LOCO_TRACTION_DELAY = 0.4  # s
+    MASS = 200  # t # TODO: PARAM
+    ACCELERATON = 0.9  # m/s/s # TODO: PARAM
+    BRAKING_FORCE = MASS * ACCELERATON  # kN # TODO: PARAM
+    FILLING_TIME = 7  # s # TODO: PARAM
+    VENTING_TIME = 16  # s # TODO: PARAM
+    POWER = 6400  # kW # TODO: PARAM
+    SLOPE = 0  # promille # TODO: PARAM
+    ADHESION_UTILISATION = 0.8 # TODO: PARAM
+    A = 0.00033 # TODO: PARAM
+    B = 0.0008 # TODO: PARAM
+    C = 1.35 # TODO: PARAM
+    TRAIN_LINE_DP = 0.20  # bar/s # TODO: PARAM
+    TRAIN_LINE_VENT_TIME = 1.5  # s # TODO: PARAM
+    LOCO_PARKING_BRAKE = 35  # kN # TODO: PARAM
+    LOCO_PARKING_TIME = 2.5  # s # TODO: PARAM
+    LOCO_MAX_EDB = 150  # kN # TODO: PARAM
+    LOCO_MAX_TRACTION = 300  # kN # TODO: PARAM
+    LOCO_DTRAX = LOCO_MAX_TRACTION / 6  # kN/s # TODO: PARAM
+    LOCO_DEDB = LOCO_MAX_EDB / 6  # kN/s # TODO: PARAM
+    LOCO_TRACTION_DELAY = 0.4  # s # TODO: PARAM
 
     @staticmethod
     def mu(speed):
@@ -93,16 +93,16 @@ class Sim:
         self._run = False
         self._pause = False
 
-        self.mass = self.MASS * 1000  # kg
-        self.train_brake = self.BRAKING_FORCE * 1000  # N
-        self.fill_time = self.FILLING_TIME
-        self.vent_time = self.VENTING_TIME
-        self.power = self.POWER
-        self.slope = self.SLOPE
-        self.adhes_util = self.ADHESION_UTILISATION
-        self.a = self.A
-        self.b = self.B
-        self.c = self.C
+        self.mass = self.MASS * 1000  # kg # TODO: PARAM
+        self.train_brake = self.BRAKING_FORCE * 1000  # N # TODO: PARAM
+        self.fill_time = self.FILLING_TIME # TODO: PARAM
+        self.vent_time = self.VENTING_TIME # TODO: PARAM
+        self.power = self.POWER # TODO: PARAM
+        self.slope = self.SLOPE # TODO: PARAM
+        self.adhes_util = self.ADHESION_UTILISATION # TODO: PARAM
+        self.a = self.A # TODO: PARAM
+        self.b = self.B # TODO: PARAM
+        self.c = self.C # TODO: PARAM
 
     def __del__(self):
         self.stop()
@@ -134,6 +134,7 @@ class Sim:
             self.controller.mp.pause_lbl.config(text="")
 
     def load(self):
+        # TODO: PARAM
         """Načte fyzikální parametry z UI jako atributy používané dále pro simulaci"""
         self.mass = float(self.controller.sim_variables["TRAIN_MASS"].get()) * 1000  # kg
         self.train_brake = float(self.controller.sim_variables["TRAIN_BRAKING_FORCE"].get()) * 1000  # N
@@ -145,6 +146,7 @@ class Sim:
         self.a = float(self.controller.sim_variables["A"].get())
         self.b = float(self.controller.sim_variables["B"].get())
         self.c = float(self.controller.sim_variables["C"].get())
+        # TODO: PARAM
 
     def run(self):
         """Simulační smyčka"""
@@ -207,11 +209,18 @@ class Sim:
                     traction = "off"
 
                 # ETCS service brake
-                if etcs_brake == 1:
-                    if tl > 3.5:
+                if etcs_brake:
+                    traction = "-"
+                    if tl > 3.5: # TODO: PARAM
                         train_brake = "apply"
-                    if traction_indication > 0:
-                        traction = "-"
+                    else:
+                        train_brake = "hold"
+
+                # any ATP intervention
+                if epv: # TODO: PARAM
+                    train_brake = "emergency"
+                    traction = "off"
+                    edb = "full"
 
                 # TRACTION & EDB
                 if traction == "+":
@@ -256,7 +265,8 @@ class Sim:
                         traction_indication = 0
                 if traction_indication < 0 and abs(speed) <= 40.0 * 3.6:
                     traction_indication = max(traction_indication, -abs(speed) / 40 * 3.6 * self.LOCO_MAX_EDB * 1000)
-                if traction_target == 0 and abs(traction_indication) < 500:
+                # prevent oscilation
+                if traction_target == 0 and abs(traction_indication) < 500: # TODO: PARAM - traction cut-off
                     traction_indication = 0
                 if speed != 0:
                     if traction_indication > 0:
@@ -264,16 +274,10 @@ class Sim:
                     else:
                         traction_indication = -min(abs(traction_indication), abs(self.power / speed))
 
-                # ATP intervention
-                if epv or etcs_brake == 2:
-                    train_brake = "emergency"
-                    traction = "off"
-                    edb = "full"
-
                 # TRAIN BRAKE
                 if train_brake == "emergency":
-                    if tl > 0.3:
-                        dtl = 5 * dt / self.TRAIN_LINE_VENT_TIME * tl
+                    if tl > 0.3: # TODO: PARAM
+                        dtl = 5 * dt / self.TRAIN_LINE_VENT_TIME * tl # TODO: PARAM - max TL pressure
                     else:
                         dtl = MAX_TL_PRESS * dt / 5 / self.TRAIN_LINE_VENT_TIME
                     tl = max(0, tl - dtl)
@@ -281,7 +285,7 @@ class Sim:
                     tl = max(0, tl - self.TRAIN_LINE_DP * dt)
                 elif train_brake == "release":
                     tl = min(5, tl + self.TRAIN_LINE_DP * dt)
-                reduction_percentage = min(MAX_TL_PRESS - tl, MAX_TL_PRESS - 3.5) / (MAX_TL_PRESS - 3.5)
+                reduction_percentage = min(MAX_TL_PRESS - tl, MAX_TL_PRESS - 3.5) / (MAX_TL_PRESS - 3.5) # TODO: PARAM
                 tb_target = reduction_percentage * MAX_TR_BR_APPL
                 if tb_application > tb_target:
                     tb_application = max(tb_target, tb_application - dt / self.vent_time * MAX_TR_BR_APPL)
@@ -291,7 +295,7 @@ class Sim:
                 brake = tb_application / MAX_TR_BR_APPL * self.train_brake
 
                 # DIRECT BRAKE
-                if abs(speed) < 1.0 / 3.6 and hjp not in (4, 5):  # AUTOMATIC PARKING
+                if abs(speed) < 1.0 / 3.6 and hjp not in (4, 5):  # AUTOMATIC PARKING # TODO: PARAM
                     db_target = MAX_DIR_BR_APPL
                 else:
                     db_target = reduction_percentage * MAX_DIR_BR_APPL
@@ -300,17 +304,24 @@ class Sim:
                 else:
                     bc = max(db_target, bc - dt / self.LOCO_PARKING_TIME * MAX_DIR_BR_APPL)
 
-                direct_brake = bc / MAX_DIR_BR_APPL * self.LOCO_PARKING_BRAKE * 1000
+                direct_brake = bc / MAX_DIR_BR_APPL * self.LOCO_PARKING_BRAKE * 1000 # TODO: PARAM
 
                 # WHEEL SLIP
                 o_v = (self.c + self.b * abs(speed) * 3.6 + self.a * (speed * 3.6) ** 2) * self.mass / 1000 * 9.81
-                ft = 88 * 1000 * 9.81 * Sim.mu(abs(speed)) * self.adhes_util
-                if max(traction_indication, -traction_indication + direct_brake) > ft:
-                    self.controller.sim_variables["SLIP"].set(True)
-                    slip = True
-                else:
-                    self.controller.sim_variables["SLIP"].set(False)
-                    slip = False
+                # TODO: PARAM - loco mass
+                # TODO: PARAM - gravity acceleration
+                # TODO: Slipping temporarily disabled
+                # ft = 88 * 1000 * 9.81 * Sim.mu(abs(speed)) * self.adhes_util
+                # if max(traction_indication, -traction_indication + direct_brake) > ft:
+                #     self.controller.sim_variables["SLIP"].set(True)
+                #     slip = True
+                # else:
+                #     self.controller.sim_variables["SLIP"].set(False)
+                #     slip = False
+                self.controller.sim_variables["SLIP"].set(False)
+                slip = False
+                # TODO: Slipping temporarily disabled
+
                 brake += direct_brake
 
                 # SPEED
@@ -817,6 +828,9 @@ class MqttComm(Comm):
         self.port = None
         self.mqtt = mqtt.Client(client_id="SimEmulator")
 
+    def __del__(self):
+        self.stop()
+
     def get_tkinter_pane(self, parent):
         return MqttPane(parent, self)
 
@@ -828,7 +842,7 @@ class MqttComm(Comm):
 
     def start(self):
         self.mqtt.connect(self.host, self.port)
-        self.mqtt.subscribe("BRAKE")
+        self.mqtt.subscribe("evc/tiu/#") # TODO - PARAM: message structure
         self.mqtt.on_message = self.on_message
         self.thread = threading.Thread(target=self.run)
         self._run = True
@@ -836,27 +850,45 @@ class MqttComm(Comm):
         self.thread.start()
 
     def on_message(self, client, userdata, message):
-        if message.topic == "BRAKE":
-            self.controller.comm_variables["EP_VALVE"].set(False)
-            if len(message.payload) != 1:
-                return
-            self.controller.comm_variables["BRAKE"].set(int(chr(message.payload[0])))
+        data = json.loads(message.payload.decode('ascii'))
+        try:
+            self.controller.comm_variables["BRAKE"].set(data["service_brake"])
+            self.controller.comm_variables["EP_VALVE"].set(data["emergency_brake"])
+        except KeyError:
+            print("Invalid data received from EVC!")
 
     def run(self):
+        t = time.time()
         while self._run:
             if len(self.log) > 200:
                 del self.log[0:-200]
 
             if not self.paused:
                 self.mqtt.loop()
-                for key, msg_type in self.comm_config.items():
-                    if time.time() >= msg_type["last_transmission"] + msg_type["period"] / 1000:
-                        data = self.controller.comm_variables[key].get()
-                        if key in ("EP_VALVE", "LS_INDICATOR"):
-                            continue
-                        if msg_type["mqtt"]:
-                            self.send(key, data=data)
-                        msg_type["last_transmission"] = time.time()
+                if time.time() > t + 0.1: # TODO - PARAM: frequency
+                    t = time.time()
+                    # TODO - PARAM: message structure
+                    data = json.dumps(
+                        {"train_speed": self.controller.comm_variables["SPEED"].get()}
+                    )
+                    self.mqtt.publish("odo/evc", data)
+                    data = json.dumps(
+                        {
+                            "battery_power": self.controller.comm_variables["BATTERY"].get(),
+                            "cab": self.controller.comm_variables["CONTROL_SWITCH"].get(),
+                            "train_direction": self.controller.comm_variables["DIRECTION_LEAVER"].get()
+                        }
+                    )
+                    self.mqtt.publish("tiu/evc", data)
+
+                # for key, msg_type in self.comm_config.items():
+                #     if time.time() >= msg_type["last_transmission"] + msg_type["period"] / 1000:
+                #         data = self.controller.comm_variables[key].get()
+                #         if key in ("EP_VALVE", "LS_INDICATOR"):
+                #             continue
+                #         if msg_type["mqtt"]:
+                #             self.send(key, data=data)
+                #         msg_type["last_transmission"] = time.time()
 
             time.sleep(1 / SERIAL_SCAN_RATE)
 
@@ -867,7 +899,10 @@ class MqttComm(Comm):
         pass
 
     def stop(self):
-        pass
+        self._run = False
+        if self.thread.is_alive():
+            self.thread.join(timeout=0.5)
+        self.mqtt.disconnect()
 
 
 class MqttPane(CommPane):
@@ -935,7 +970,7 @@ class Emulator(tk.Tk):
             "LS_SWITCH": tk.IntVar(value=0),
             "LS_INDICATOR": tk.IntVar(value=0),
             "EP_VALVE": tk.BooleanVar(value=True),
-            "BRAKE": tk.IntVar(value=0),
+            "BRAKE": tk.BooleanVar(value=False),
             "CONTROL_SWITCH": tk.IntVar(value=0),
             "DRIVING_LEAVER": tk.IntVar(value=3),
             "WHISTLE": tk.BooleanVar(value=False),
