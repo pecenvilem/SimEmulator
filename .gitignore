@@ -1,2 +1,5 @@
-/no_code/
-
+secrets.py
+.gitignore
+sql_test.py
+database_dump.py
+\venv\

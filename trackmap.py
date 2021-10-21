@@ -1,6 +1,11 @@
+import json
 import tkinter as tk
 import tkinter.messagebox as msb
 import mysql.connector
+import re
+from secrets import defaut_host, defaut_user, defaut_password, defaut_database
+with open("balises.sql", "rt") as f:
+    query = f.read()
 
 
 class TrackMap(tk.Frame):
@@ -35,10 +40,10 @@ class TrackMap(tk.Frame):
         tl = tk.Toplevel(self)
         tl.transient(self)
         tl.focus_set()
-        host = tk.StringVar(value="localhost")
-        user = tk.StringVar(value="root")
-        password = tk.StringVar(value="")
-        database = tk.StringVar(value="test")
+        host = tk.StringVar(value=defaut_host)
+        user = tk.StringVar(value=defaut_user)
+        password = tk.StringVar(value=defaut_password)
+        database = tk.StringVar(value=defaut_database)
 
         def load():
             try:
@@ -56,7 +61,7 @@ class TrackMap(tk.Frame):
                 return
             cursor = connection.cursor()
             try:
-                cursor.execute("SELECT position, json FROM `balise`;")
+                cursor.execute(query)
             except mysql.connector.errors.DatabaseError as e:
                 msb.showerror(
                     "Hledání v databázi",
@@ -64,7 +69,37 @@ class TrackMap(tk.Frame):
                 )
                 return
             else:
-                self.balises = list([{"position": position, "telegram": json} for position, json in cursor])
+                data = cursor.fetchall()
+                self.balises = []
+                total_dist = 0
+                for i, record in enumerate(data):
+                    element, length, intrinsic, delta, balise, pos_in_group, duplicate, group,  *_ = record
+                    if i != 0:
+                        prev_element, prev_length, *_ = data[i - 1]
+                        if prev_element != element:
+                            total_dist += prev_length
+                    if balise is not None:
+                        match = re.search(r"\d+", group)
+                        try:
+                            group = int(match.group())
+                        except ValueError:
+                            group = None
+                        dist = total_dist + intrinsic * length + delta
+                        telegram = {
+                            "Q_UPDOWN": 1,
+                            "M_VERSION": 16,
+                            "Q_MEDIA": 0,
+                            "N_PIG": pos_in_group,
+                            "N_TOTAL": 1,
+                            "M_DUP": 0,
+                            "M_MCOUNT": 0,
+                            "NID_C": 513,
+                            "Q_LINK": 0,
+                            "End of Information": {
+                                "NID_PACKET": 255
+                            }
+                        }
+                        self.balises.append({"position": dist, "telegram": json.dumps(telegram)})
                 msb.showinfo(
                     "Načtení dat",
                     f"Načteno {len(self.balises)} balíz."
