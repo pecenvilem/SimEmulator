@@ -2,4 +2,7 @@ secrets.py
 .gitignore
 sql_test.py
 database_dump.py
+db.sql
 \venv\
+\.idea\
+\no_code\
