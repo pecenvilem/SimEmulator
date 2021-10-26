@@ -21,10 +21,10 @@ class TrackMap(tk.Frame):
         self.grid_rowconfigure(10, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(20, weight=1)
-        self.canvas = tk.Canvas(self, width=int(self.width * 0.4), height=self.height)
+        self.canvas = tk.Canvas(self, width=int(self.width * 0.8), height=self.height)
         self.canvas.grid(row=1, column=1)
         tk.Button(self, text="Načíst", command=self.load_data).grid(row=1, column=2)
-        labels = (item for item in [2000, 1000, 500, 0, -500, -1000])
+        labels_main = iter([2000, 1000, 500, 0, -500, -1000])
         for i in range(1, 12):  # 1 through 11
             x1, y1 = (0, i * self.height / 12)
             y2 = y1
@@ -32,7 +32,17 @@ class TrackMap(tk.Frame):
                 x2 = self.width * 0.125
             else:
                 x2 = self.width * 0.25
-                self.canvas.create_text(x2 + 5, y2, text=f"{next(labels)} m", anchor="w")
+                self.canvas.create_text(x2 + 5, y2, text=f"{next(labels_main)} m", anchor="w")
+            self.canvas.create_line(x1, y1, x2, y2, tag="mark")
+        labels_detail = iter([5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5])
+        for i in range(1, 12):  # 1 through 11
+            x1, y1 = (self.width * 0.45, i * self.height / 12)
+            y2 = y1
+            if i % 2 == 1:
+                x2 = self.width * 0.55
+            else:
+                x2 = self.width * 0.7
+            self.canvas.create_text(x2 + 5, y2, text=f"{next(labels_detail)} m", anchor="w")
             self.canvas.create_line(x1, y1, x2, y2, tag="mark")
         self.balises = []
 
@@ -83,7 +93,7 @@ class TrackMap(tk.Frame):
                         try:
                             group = int(match.group())
                         except ValueError:
-                            group = None
+                            group = 0  # TODO: use correct error value according to ETCS spec
                         dist = total_dist + intrinsic * length + delta
                         telegram = {
                             "Q_UPDOWN": 1,
@@ -94,6 +104,7 @@ class TrackMap(tk.Frame):
                             "M_DUP": 0,
                             "M_MCOUNT": 0,
                             "NID_C": 513,
+                            "NID_BG": group,
                             "Q_LINK": 0,
                             "End of Information": {
                                 "NID_PACKET": 255
@@ -122,27 +133,35 @@ class TrackMap(tk.Frame):
 
     def draw_balise(self, balise):
         if -1000 <= balise["position"] <= 2500:
-            position = self.track_to_canvas(balise["position"])
+            position = self.track_to_canvas_main(balise["position"])
             x1, y1 = 0.100 * self.width, position - self.width * 0.0125
             x2, y2 = 0.125 * self.width, position + self.width * 0.0125
-            return self.canvas.create_oval(x1, y1, x2, y2, fill="magenta", tag=("balise", "item"))
+            self.canvas.create_oval(x1, y1, x2, y2, fill="magenta", tag=("balise", "item"))
+        if -5 <= balise["position"] <= 5:
+            position = self.track_to_canvas_detail(balise["position"])
+            x1, y1 = 0.650 * self.width, position - self.width * 0.0125
+            x2, y2 = 0.675 * self.width, position + self.width * 0.0125
+            self.canvas.create_oval(x1, y1, x2, y2, fill="magenta", tag=("balise", "item"))
 
     def refresh(self):
         self.canvas.delete("item")
         for item in self.balises:
-            item["id"] = self.draw_balise(item)
+            self.draw_balise(item)
 
-    def canvas_to_track(self, value):
+    def canvas_to_track_main(self, value):
         if value < self.height * 3 / 12:
             return 2500 - value / (self.height * 3 / 12) * 1500
         else:
             return 1000 - (value - (self.height * 3 / 12)) / (self.height * 9 / 12) * 2250
 
-    def track_to_canvas(self, value):
+    def track_to_canvas_main(self, value):
         if value > 1000:
             return (2500 - value) * (self.height * 3 / 12) / 1500
         else:
             return ((self.height * 9 / 12) / 2250) * (1000 - value) + (self.height * 3 / 12)
+
+    def track_to_canvas_detail(self, value):
+        return self.height / 2 - value / 5 * self.height / 2
 
     def shift(self, distance):
         telegrams = []
