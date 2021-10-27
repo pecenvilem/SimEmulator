@@ -96,12 +96,8 @@ class Sim:
             self._run = True
             self.thread.start()
 
-    def pause(self):
+    def togle_pause(self):
         self._pause = not self._pause
-        if self._pause:
-            self.controller.mp.pause_lbl.config(text="Pozastaveno")
-        else:
-            self.controller.mp.pause_lbl.config(text="")
 
     def load(self):
         # TODO: PARAM
