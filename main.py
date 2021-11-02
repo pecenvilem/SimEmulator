@@ -16,10 +16,6 @@ import time
 import threading
 import json
 
-MAX_TR_BR_APPL = 3.8    # bar # TODO: PARAM
-MAX_DIR_BR_APPL = 6     # bar # TODO: PARAM
-MAX_TL_PRESS = 5        # bar # TODO: PARAM
-
 DIR = os.getcwd()
 IMG = os.path.join(DIR, "img")
 MAIN_ICON = os.path.join(IMG, "dsfd.ico")
@@ -30,26 +26,55 @@ HJP = os.path.join(IMG, "hjp")
 class Sim:
     """Slouží k fyzikální simulaci pohybu vlaku"""
 
-    MASS = 200  # t # TODO: PARAM
-    ACCELERATON = 0.9  # m/s/s # TODO: PARAM
-    BRAKING_FORCE = MASS * ACCELERATON  # kN # TODO: PARAM
-    FILLING_TIME = 7  # s # TODO: PARAM
-    VENTING_TIME = 16  # s # TODO: PARAM
-    POWER = 6400  # kW # TODO: PARAM
-    SLOPE = 0  # promille # TODO: PARAM
-    ADHESION_UTILISATION = 0.8 # TODO: PARAM
-    A = 0.00033 # TODO: PARAM
-    B = 0.0008 # TODO: PARAM
-    C = 1.35 # TODO: PARAM
-    TRAIN_LINE_DP = 0.20  # bar/s # TODO: PARAM
-    TRAIN_LINE_VENT_TIME = 1.5  # s # TODO: PARAM
-    LOCO_PARKING_BRAKE = 35  # kN # TODO: PARAM
-    LOCO_PARKING_TIME = 2.5  # s # TODO: PARAM
-    LOCO_MAX_EDB = 150  # kN # TODO: PARAM
-    LOCO_MAX_TRACTION = 300  # kN # TODO: PARAM
-    LOCO_DTRAX = LOCO_MAX_TRACTION / 6  # kN/s # TODO: PARAM
-    LOCO_DEDB = LOCO_MAX_EDB / 6  # kN/s # TODO: PARAM
-    LOCO_TRACTION_DELAY = 0.4  # s # TODO: PARAM
+    # MASS = 200  # t # TODO: PARAM
+    # ACCELERATION = 0.9  # m/s/s # TODO: PARAM
+    # BRAKING_FORCE = MASS * ACCELERATION  # kN # TODO: PARAM
+    # FILLING_TIME = 7  # s # TODO: PARAM
+    # VENTING_TIME = 16  # s # TODO: PARAM
+    # POWER = 6400  # kW # TODO: PARAM
+    # SLOPE = 0  # promille # TODO: PARAM
+    # ADHESION_UTILISATION = 0.8 # TODO: PARAM
+    # A = 0.00033 # TODO: PARAM
+    # B = 0.0008 # TODO: PARAM
+    # C = 1.35 # TODO: PARAM
+    # TRAIN_LINE_DP = 0.20  # bar/s # TODO: PARAM
+    # TRAIN_LINE_VENT_TIME = 1.5  # s # TODO: PARAM
+    # LOCO_PARKING_BRAKE = 35  # kN # TODO: PARAM
+    # LOCO_PARKING_TIME = 2.5  # s # TODO: PARAM
+    # LOCO_MAX_EDB = 150  # kN # TODO: PARAM
+    # LOCO_MAX_TRACTION = 300  # kN # TODO: PARAM
+    # LOCO_DTRAX = LOCO_MAX_TRACTION / 6  # kN/s # TODO: PARAM
+    # LOCO_DEDB = LOCO_MAX_EDB / 6  # kN/s # TODO: PARAM
+    # LOCO_TRACTION_DELAY = 0.4  # s # TODO: PARAM
+    # MAX_TR_BR_APPL = 3.8    # bar # TODO: PARAM
+    # MAX_DIR_BR_APPL = 6     # bar # TODO: PARAM
+    # MAX_TL_PRESS = 5        # bar # TODO: PARAM
+
+    from configuration import MASS
+    from configuration import ACCELERATION
+    from configuration import BRAKING_FORCE
+    from configuration import FILLING_TIME
+    from configuration import VENTING_TIME
+    from configuration import POWER
+    from configuration import SLOPE
+    from configuration import ADHESION_UTILISATION
+    from configuration import A, B, C
+    from configuration import TRAIN_LINE_DP
+    from configuration import TRAIN_LINE_VENT_TIME
+    from configuration import LOCO_PARKING_BRAKE
+    from configuration import LOCO_PARKING_TIME
+    from configuration import LOCO_MAX_EDB
+    from configuration import LOCO_MAX_TRACTION
+    from configuration import LOCO_DTRAX
+    from configuration import LOCO_DEDB
+    from configuration import LOCO_TRACTION_DELAY
+    from configuration import TL_PRESS_MAX_TR_BR
+    from configuration import MAX_TR_BR_APPL
+    from configuration import MAX_DIR_BR_APPL
+    from configuration import MAX_TL_PRESS
+    from configuration import TRACTION_CUT_OFF
+    from configuration import TL_VENT_ELBOW
+    from configuration import PARKING_BRAKE_AUTOMATIC_ENGAGE
 
     @staticmethod
     def mu(speed):
@@ -62,16 +87,16 @@ class Sim:
         self._run = False
         self._pause = False
 
-        self.mass = self.MASS * 1000  # kg # TODO: PARAM
-        self.train_brake = self.BRAKING_FORCE * 1000  # N # TODO: PARAM
-        self.fill_time = self.FILLING_TIME # TODO: PARAM
-        self.vent_time = self.VENTING_TIME # TODO: PARAM
-        self.power = self.POWER # TODO: PARAM
-        self.slope = self.SLOPE # TODO: PARAM
-        self.adhes_util = self.ADHESION_UTILISATION # TODO: PARAM
-        self.a = self.A # TODO: PARAM
-        self.b = self.B # TODO: PARAM
-        self.c = self.C # TODO: PARAM
+        self.mass = self.MASS * 1000  # kg
+        self.train_brake = self.BRAKING_FORCE * 1000  # N
+        self.fill_time = self.FILLING_TIME
+        self.vent_time = self.VENTING_TIME
+        self.power = self.POWER
+        self.slope = self.SLOPE
+        self.adhes_util = self.ADHESION_UTILISATION
+        self.a = self.A
+        self.b = self.B
+        self.c = self.C
 
     def __del__(self):
         self.stop()
@@ -100,7 +125,6 @@ class Sim:
         self._pause = not self._pause
 
     def load(self):
-        # TODO: PARAM
         """Načte fyzikální parametry z UI jako atributy používané dále pro simulaci"""
         self.mass = float(self.controller.sim_variables["TRAIN_MASS"].get()) * 1000  # kg
         self.train_brake = float(self.controller.sim_variables["TRAIN_BRAKING_FORCE"].get()) * 1000  # N
@@ -112,8 +136,8 @@ class Sim:
         self.a = float(self.controller.sim_variables["A"].get())
         self.b = float(self.controller.sim_variables["B"].get())
         self.c = float(self.controller.sim_variables["C"].get())
-        # TODO: PARAM
 
+    # noinspection SpellCheckingInspection
     def run(self):
         """Simulační smyčka"""
         t0 = time.time()
@@ -176,7 +200,8 @@ class Sim:
                 # ETCS service brake
                 if etcs_brake:
                     traction = "-"
-                    if tl > 3.5: # TODO: PARAM
+                    # if tl > 3.5: # TODO: PARAM
+                    if tl > self.TL_PRESS_MAX_TR_BR:
                         train_brake = "apply"
                     else:
                         train_brake = "hold"
@@ -231,7 +256,8 @@ class Sim:
                 if traction_indication < 0 and abs(speed) <= 40.0 * 3.6:
                     traction_indication = max(traction_indication, -abs(speed) / 40 * 3.6 * self.LOCO_MAX_EDB * 1000)
                 # prevent oscilation
-                if traction_target == 0 and abs(traction_indication) < 500: # TODO: PARAM - traction cut-off
+                # if traction_target == 0 and abs(traction_indication) < 500: # TODO: PARAM - traction cut-off
+                if traction_target == 0 and abs(traction_indication) < self.TRACTION_CUT_OFF:
                     traction_indication = 0
                 if speed != 0:
                     if traction_indication > 0:
@@ -241,35 +267,42 @@ class Sim:
 
                 # TRAIN BRAKE
                 if train_brake == "emergency":
-                    if tl > 0.3: # TODO: PARAM
-                        dtl = 5 * dt / self.TRAIN_LINE_VENT_TIME * tl # TODO: PARAM - max TL pressure
+                    # if tl > 0.3: # TODO: PARAM
+                    if tl > self.TL_VENT_ELBOW:
+                        # dtl = 5 * dt / self.TRAIN_LINE_VENT_TIME * tl # TODO: PARAM - max TL pressure
+                        dtl = self.MAX_TL_PRESS * dt / self.TRAIN_LINE_VENT_TIME * tl
                     else:
-                        dtl = MAX_TL_PRESS * dt / 5 / self.TRAIN_LINE_VENT_TIME
+                        dtl = self.MAX_TL_PRESS * dt / 5 / self.TRAIN_LINE_VENT_TIME
                     tl = max(0, tl - dtl)
                 elif train_brake == "apply":
                     tl = max(0, tl - self.TRAIN_LINE_DP * dt)
                 elif train_brake == "release":
                     tl = min(5, tl + self.TRAIN_LINE_DP * dt)
-                reduction_percentage = min(MAX_TL_PRESS - tl, MAX_TL_PRESS - 3.5) / (MAX_TL_PRESS - 3.5) # TODO: PARAM
-                tb_target = reduction_percentage * MAX_TR_BR_APPL
-                if tb_application > tb_target:
-                    tb_application = max(tb_target, tb_application - dt / self.vent_time * MAX_TR_BR_APPL)
-                else:
-                    tb_application = min(tb_target, tb_application + dt / self.fill_time * MAX_TR_BR_APPL)
+                # TODO: PARAM
+                # reduction_percentage = min(self.MAX_TL_PRESS - tl, self.MAX_TL_PRESS - 3.5)/(self.MAX_TL_PRESS - 3.5)
+                reduction_percentage = min(self.MAX_TL_PRESS - tl,
+                                           self.MAX_TL_PRESS - self.TL_PRESS_MAX_TR_BR) / (self.MAX_TL_PRESS - self.TL_PRESS_MAX_TR_BR)
 
-                brake = tb_application / MAX_TR_BR_APPL * self.train_brake
+                tb_target = reduction_percentage * self.MAX_TR_BR_APPL
+                if tb_application > tb_target:
+                    tb_application = max(tb_target, tb_application - dt / self.vent_time * self.MAX_TR_BR_APPL)
+                else:
+                    tb_application = min(tb_target, tb_application + dt / self.fill_time * self.MAX_TR_BR_APPL)
+
+                brake = tb_application / self.MAX_TR_BR_APPL * self.train_brake
 
                 # DIRECT BRAKE
-                if abs(speed) < 1.0 / 3.6 and hjp not in (4, 5):  # AUTOMATIC PARKING # TODO: PARAM
-                    db_target = MAX_DIR_BR_APPL
+                # if abs(speed) < 1.0 / 3.6 and hjp not in (4, 5):  # AUTOMATIC PARKING # TODO: PARAM
+                if abs(speed) < self.PARKING_BRAKE_AUTOMATIC_ENGAGE / 3.6 and hjp not in (4, 5):
+                    db_target = self.MAX_DIR_BR_APPL
                 else:
-                    db_target = reduction_percentage * MAX_DIR_BR_APPL
+                    db_target = reduction_percentage * self.MAX_DIR_BR_APPL
                 if bc < db_target:
-                    bc = min(db_target, bc + dt / self.LOCO_PARKING_TIME * MAX_DIR_BR_APPL)
+                    bc = min(db_target, bc + dt / self.LOCO_PARKING_TIME * self.MAX_DIR_BR_APPL)
                 else:
-                    bc = max(db_target, bc - dt / self.LOCO_PARKING_TIME * MAX_DIR_BR_APPL)
+                    bc = max(db_target, bc - dt / self.LOCO_PARKING_TIME * self.MAX_DIR_BR_APPL)
 
-                direct_brake = bc / MAX_DIR_BR_APPL * self.LOCO_PARKING_BRAKE * 1000 # TODO: PARAM
+                direct_brake = bc / self.MAX_DIR_BR_APPL * self.LOCO_PARKING_BRAKE * 1000
                 brake += direct_brake
 
                 # SPEED
@@ -398,6 +431,7 @@ class DummyComm(Comm):
         self.thread = threading.Thread(target=self.run, daemon=True)
         self._run = True
         self.thread.start()
+        return True
 
     def resume(self):
         """Obnoví odesílání zpráv"""
@@ -431,10 +465,12 @@ class DummyPane(CommPane):
 
 class MqttComm(Comm):
 
-    def __init__(self, controller, transmit_frq=50):
+    def __init__(self, controller, transmit_frq=1):
         super().__init__(controller, transmit_frq)
         self.host = None
         self.port = None
+        self.username = None
+        self.password = None
         self.client = mqtt.Client(client_id="SimEmulator")
 
     def __del__(self):
@@ -450,8 +486,12 @@ class MqttComm(Comm):
         self.comm_config = config_data
 
     def start(self):
+        if self.username is not None:
+            self.client.username_pw_set(self.username, self.password)
         self.client.connect(self.host, self.port)
-        self.client.subscribe("evc/tiu/#") # TODO - PARAM: message structure
+        # self.client.subscribe("+/tiu/#") # TODO - PARAM: message structure
+        from configuration import SUBCRIBE_TOPIC
+        self.client.subscribe(SUBCRIBE_TOPIC)
         self.client.on_message = self.on_message
         self.thread = threading.Thread(target=self.run, daemon=True)
         self._run = True
@@ -471,7 +511,6 @@ class MqttComm(Comm):
         while self._run:
             if not self.paused:
                 self.client.loop()
-                # TODO - PARAM: message structure
                 data = json.dumps(
                     {"train_speed": self.controller.comm_variables["SPEED"].get()}
                 )
@@ -508,19 +547,29 @@ class MqttPane(CommPane):
         super().__init__(parent)
         self.comm = comm
 
-        self.host = tk.StringVar(value="localhost")
-        self.port = tk.StringVar(value="1883")
+        from secrets import mqtt_host, mqtt_port, mqtt_username, mqtt_password
+
+        self.host = tk.StringVar(value=mqtt_host)
+        self.port = tk.StringVar(value=mqtt_port)
+        self.username = tk.StringVar(value=mqtt_username)
+        self.password = tk.StringVar(value=mqtt_password)
 
         tk.Label(self, text="Host:").grid(row=0, column=0)
         tk.Entry(self, textvariable=self.host, width=15).grid(row=0, column=1)
         tk.Label(self, text="Port:").grid(row=1, column=0)
         tk.Entry(self, textvariable=self.port, width=6).grid(row=1, column=1)
+        tk.Label(self, text="Username:").grid(row=2, column=0)
+        tk.Entry(self, textvariable=self.username, width=6).grid(row=1, column=1)
+        tk.Label(self, text="Heslo:").grid(row=3, column=0)
+        tk.Entry(self, textvariable=self.password, width=6).grid(row=1, column=1)
 
     def connect(self):
         """Otevře hlavní okno aplikace a připojí se k CAN převodníku."""
         try:
             self.comm.host = self.host.get()
             self.comm.port = int(self.port.get())
+            self.comm.username = self.username.get()
+            self.comm.password = self.password.get()
         except ValueError:
             msb.showerror(title="Chyba", message="Nerozpoznáno číslo portu!")
             return False
@@ -555,12 +604,12 @@ class Emulator(tk.Tk):
         self.comm_variables = {
             "BATTERY": tk.BooleanVar(value=False),
             "SPEED": tk.DoubleVar(value=0),
-            "DIRECTION_LEAVER": tk.IntVar(value=0),
+            "DIRECTION_LEAVER": tk.IntVar(value=2),
             "BRAKE_CYLINDER_PRESSURE": tk.DoubleVar(value=6),
             "TRAIN_LINE_PRESSURE": tk.DoubleVar(value=5),
             "EP_VALVE": tk.BooleanVar(value=False),
             "BRAKE": tk.BooleanVar(value=False),
-            "CONTROL_SWITCH": tk.IntVar(value=0),
+            "CONTROL_SWITCH": tk.BooleanVar(value=0),
             "DRIVING_LEAVER": tk.IntVar(value=3),
             "BALISE_TELEGRAM": tk.StringVar(value="{}")
         }
@@ -590,6 +639,10 @@ class Emulator(tk.Tk):
 
         self.cp.tkraise()
 
+        from configuration import MQTT_AUTOCONNECT
+        if MQTT_AUTOCONNECT:
+            self.after(10, self.cp.connect)
+
     def connect(self, comm):
         self.comm = comm
         self.comm.config(self.loaded_data)
@@ -600,6 +653,9 @@ class Emulator(tk.Tk):
             self.comm.attach_handle(name, self.generic_rtr_response, type=name)
 
         self.mp.tkraise()
+        from configuration import DATABASE_AUTOCONNECT
+        if DATABASE_AUTOCONNECT:
+            self.mp.track.load_data()
 
     def load_config(self, filename):
         """Načte data o CAN komunikaci ze souboru."""
@@ -620,7 +676,7 @@ class Emulator(tk.Tk):
             try:
                 assert type(item := loaded_data[key]) == dict
                 assert type(item["id"]) == int
-                assert item["id"] <= 2**29
+                assert item["id"] <= 2 ** 29
                 assert type(item.setdefault("length", 1)) == int
                 assert (item["length"] <= 8) and (item["length"] >= 1)
                 assert type(item.setdefault("multiplier", 1)) == int
@@ -707,20 +763,20 @@ class MainPage(tk.Frame):
 
         tk.Label(settings, text="Směrová páka:").grid(row=40, rowspan=2, column=1, sticky="e")
         tk.Radiobutton(settings, variable=self.controler.comm_variables["DIRECTION_LEAVER"],
-                       value=-1, text="Z").grid(row=40, column=2)
+                       value=0, text="Z").grid(row=40, column=2)
         tk.Radiobutton(settings, variable=self.controler.comm_variables["DIRECTION_LEAVER"],
-                       value=0, text="0").grid(row=40, column=3)
+                       value=2, text="0").grid(row=40, column=3)
         tk.Radiobutton(settings, variable=self.controler.comm_variables["DIRECTION_LEAVER"],
                        value=1, text="P").grid(row=40, column=4)
 
         tk.Label(settings, text="Průběžné potrubí [bar]:").grid(row=50, column=1, sticky="e")
-        trline_sbox = ttk.Spinbox(settings, from_=0, to=MAX_TL_PRESS, increment=0.1, state="readonly",
+        trline_sbox = ttk.Spinbox(settings, from_=0, to=Sim.MAX_TL_PRESS, increment=0.1, state="readonly",
                                   textvariable=self.controler.comm_variables["TRAIN_LINE_PRESSURE"])
         self.controler.comm_variables["TRAIN_LINE_PRESSURE"].set(5)
         trline_sbox.grid(row=50, column=2, columnspan=3, padx=5, sticky="w")
 
         tk.Label(settings, text="Přímočinná brzda [bar]:").grid(row=60, column=1, sticky="e")
-        cylpres_sbox = ttk.Spinbox(settings, from_=0, to=MAX_DIR_BR_APPL, increment=0.1, state="readonly",
+        cylpres_sbox = ttk.Spinbox(settings, from_=0, to=Sim.MAX_DIR_BR_APPL, increment=0.1, state="readonly",
                                    textvariable=self.controler.comm_variables["BRAKE_CYLINDER_PRESSURE"])
         self.controler.comm_variables["BRAKE_CYLINDER_PRESSURE"].set(6)
         cylpres_sbox.grid(row=60, column=2, columnspan=3, padx=5, sticky="w")
@@ -769,8 +825,8 @@ class MainPage(tk.Frame):
 
         LeaverSwitch(switches,
                      notches=[
-                         SwitchPosition(position=-1, label="Z", value=-1),
-                         SwitchPosition(position=0, label="0", value=0),
+                         SwitchPosition(position=-1, label="Z", value=0),
+                         SwitchPosition(position=0, label="0", value=2),
                          SwitchPosition(position=1, label="P", value=1)],
                      default=SwitchPosition(position=0, label="0", value=0),
                      variable=self.controler.comm_variables["DIRECTION_LEAVER"],
@@ -786,8 +842,6 @@ class MainPage(tk.Frame):
         sim.grid_columnconfigure(0, weight=1)
         sim.grid_columnconfigure(30, weight=1)
         sim.grid(row=3, column=1, columnspan=3)
-        # tk.Button(sim, text="Spustit", command=self.controler.sim.start, width=8).grid(row=0, column=1, sticky="e")
-        # tk.Button(sim, text="Pauza", command=self.controler.sim.pause, width=8).grid(row=1, column=1, sticky="e")
         tk.Button(sim, text="Načíst", command=self.controler.sim.start).grid(row=0, column=1, rowspan=2, sticky="e")
         self.pause_lbl = tk.Label(sim, text="", fg="red", width=13)
         self.pause_lbl.grid(row=1, column=2, sticky="w")
@@ -797,7 +851,7 @@ class MainPage(tk.Frame):
         e.grid(row=0, column=4, sticky="w")
         tk.Label(sim, text=u"Brzdné zrychlení: [m/s\u207b\u00b2]").grid(row=1, column=3, sticky="e")
         e = tk.Entry(sim, width=6, textvariable=self.controler.sim_variables["ACCELERATION"])
-        self.controler.sim_variables["ACCELERATION"].set(str(self.controler.sim.ACCELERATON))
+        self.controler.sim_variables["ACCELERATION"].set(str(self.controler.sim.ACCELERATION))
         e.grid(row=1, column=4, sticky="w")
         tk.Label(sim, text="Brzdná síla soupravy: [kN]").grid(row=0, column=5, sticky="e")
         e = tk.Entry(sim, width=5, textvariable=self.controler.sim_variables["TRAIN_BRAKING_FORCE"])
@@ -847,8 +901,9 @@ class ConnectPage(tk.Frame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(10, weight=1)
 
+        from configuration import PUBLISH_FREQUENCY
         self.comms = [
-            ("MQTT", MqttComm(self.controller), None),
+            ("MQTT", MqttComm(self.controller, transmit_frq=PUBLISH_FREQUENCY), None),
             ("Test", DummyComm(self.controller), None)
         ]
 
@@ -881,4 +936,5 @@ def main(argv):
 
 if __name__ == '__main__':
     import sys
+
     main(sys.argv)

@@ -3,9 +3,12 @@ import tkinter as tk
 import tkinter.messagebox as msb
 import mysql.connector
 import re
-from secrets import defaut_host, defaut_user, defaut_password, defaut_database
+from secrets import db_host, db_user, db_password, db_database
 with open("balises.sql", "rt") as f:
     query = f.read()
+# TODO: PARAM
+from configuration import STARTING_NET_ELEMENT
+query = query.format(STARTING_NET_ELEMENT=STARTING_NET_ELEMENT)
 
 
 class TrackMap(tk.Frame):
@@ -15,7 +18,7 @@ class TrackMap(tk.Frame):
         self.height = kwargs.pop("height", 300)
         self.width = kwargs.pop("width", 300)
         self.variable = kwargs.pop("variable", tk.StringVar())
-        self.range = kwargs.pop("balise_transmitt_range", 2)
+        self.range = kwargs.pop("balise_transmitt_range", 1)
         super().__init__(parent, *args, **kwargs)
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(10, weight=1)
@@ -50,10 +53,10 @@ class TrackMap(tk.Frame):
         tl = tk.Toplevel(self)
         tl.transient(self)
         tl.focus_set()
-        host = tk.StringVar(value=defaut_host)
-        user = tk.StringVar(value=defaut_user)
-        password = tk.StringVar(value=defaut_password)
-        database = tk.StringVar(value=defaut_database)
+        host = tk.StringVar(value=db_host)
+        user = tk.StringVar(value=db_user)
+        password = tk.StringVar(value=db_password)
+        database = tk.StringVar(value=db_database)
 
         def load():
             try:
@@ -83,39 +86,68 @@ class TrackMap(tk.Frame):
                 self.balises = []
                 total_dist = 0
                 for i, record in enumerate(data):
-                    element, length, intrinsic, delta, balise, pos_in_group, duplicate, group,  *_ = record
+                    element, length, intrinsic, delta, balise, pos_in_group, duplicate, group, def_tgmr,  *_ = record
                     if i != 0:
                         prev_element, prev_length, *_ = data[i - 1]
                         if prev_element != element:
                             total_dist += prev_length
                     if balise is not None:
-                        match = re.search(r"\d+", group)
-                        try:
-                            group = int(match.group())
-                        except ValueError:
-                            group = 0  # TODO: use correct error value according to ETCS spec
+                        # match = re.search(r"\d+", group)
+                        # try:
+                        #     group = int(match.group())
+                        # except ValueError:
+                        #     # invalid number - reserved for linking
+                        #     # [intention is to cause an error since balise group number was not recognized]
+                        #     group = 16383
+                        # dist = total_dist + intrinsic * length + delta
+                        # telegram = {
+                        #     "Q_UPDOWN": 1,
+                        #     "M_VERSION": 16,
+                        #     "Q_MEDIA": 0,
+                        #     "N_PIG": pos_in_group,
+                        #     "N_TOTAL": 1,
+                        #     "M_DUP": duplicate,
+                        #     "M_MCOUNT": 0,
+                        #     "NID_C": 513,
+                        #     "NID_BG": group,
+                        #     "Q_LINK": 0,
+                        #     "End of Information": {
+                        #         "NID_PACKET": 255
+                        #     }
+                        # }
+
+                        # Pulling default telegrams from DB
+                        # According to SUBSET-026-7 v0360 total length of telegram should be 58 bits
+                        # DB returns 64 bit long hex number
+                        #
                         dist = total_dist + intrinsic * length + delta
+                        def_tgmr = int(def_tgmr, base=16)
+                        i = len(f"{def_tgmr:b}")
                         telegram = {
-                            "Q_UPDOWN": 1,
-                            "M_VERSION": 16,
-                            "Q_MEDIA": 0,
-                            "N_PIG": pos_in_group,
-                            "N_TOTAL": 1,
-                            "M_DUP": 0,
-                            "M_MCOUNT": 0,
-                            "NID_C": 513,
-                            "NID_BG": group,
-                            "Q_LINK": 0,
+                            "Q_UPDOWN": (def_tgmr & (1 << (i - 1))) >> (i - 1),  # 1 bit [1]
+                            "M_VERSION": (def_tgmr & (127 << (i - 8))) >> (i - 8),  # 7 bits [2-8]
+                            "Q_MEDIA": (def_tgmr & (1 << (i - 9))) >> (i - 9),  # 1 bit [9],
+                            "N_PIG": (def_tgmr & (7 << (i - 12))) >> (i - 12),  # 3 bits [10-12],
+                            "N_TOTAL": (def_tgmr & (7 << (i - 15))) >> (i - 15),  # 3 bits [13-15],
+                            "M_DUP": (def_tgmr & (3 << (i - 17))) >> (i - 17),  # 2 bits [16-17],
+                            "M_MCOUNT": (def_tgmr & (255 << (i - 25))) >> (i - 25),  # 8 bits [18-25],
+                            "NID_C": (def_tgmr & (1023 << (i - 35))) >> (i - 35),  # 10 bits [26-35],
+                            "NID_BG": (def_tgmr & (16383 << (i - 49))) >> (i - 49),  # 14 bits [36-49],
+                            "Q_LINK": (def_tgmr & (1 << (i - 50))) >> (i - 50),  # 1 bit [50],
                             "End of Information": {
-                                "NID_PACKET": 255
+                                "NID_PACKET": 255  # 8 more bits [51-58]
                             }
                         }
+                        # common append for both the original and new method of reading telegrams
                         self.balises.append({"position": dist, "telegram": json.dumps(telegram)})
-                msb.showinfo(
-                    "Načtení dat",
-                    f"Načteno {len(self.balises)} balíz."
-                )
+                if not DATABASE_AUTOCONNECT:
+                    msb.showinfo(
+                        "Načtení dat",
+                        f"Načteno {len(self.balises)} balíz."
+                    )
                 self.refresh()
+                from configuration import STARTING_OFFSET
+                self.shift(STARTING_OFFSET)
             finally:
                 cursor.close()
                 connection.close()
@@ -130,6 +162,10 @@ class TrackMap(tk.Frame):
         tk.Label(tl, text="Database:").grid(row=3, column=0)
         tk.Entry(tl, textvariable=database).grid(row=3, column=1)
         tk.Button(tl, text="Načíst", command=load).grid(row=4, column=1, columnspan=2)
+
+        from configuration import DATABASE_AUTOCONNECT
+        if DATABASE_AUTOCONNECT:
+            load()
 
     def draw_balise(self, balise):
         if -1000 <= balise["position"] <= 2500:

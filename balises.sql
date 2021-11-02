@@ -2,7 +2,7 @@ WITH RECURSIVE cte (`element`, `length`) AS
 -- builds sequence of LinearElements connected by PositionedRelation starting from given element
 -- traverses topology only in the forward direction
 (
-    SELECT `id`, `length` FROM `LinearElement` WHERE id = "21e2fed0-5c8b-48e6-8378-cee47ba74c6x"
+    SELECT `id`, `length` FROM `LinearElement` WHERE id = "{STARTING_NET_ELEMENT}"
     UNION
     (
         SELECT
@@ -13,7 +13,7 @@ WITH RECURSIVE cte (`element`, `length`) AS
             `PositionedRelation` relation,
             `LinearElement` element_x
         WHERE
-                element_0.id = "21e2fed0-5c8b-48e6-8378-cee47ba74c6x"
+                element_0.id = "{STARTING_NET_ELEMENT}"
             AND
                 (
                     (
@@ -67,17 +67,18 @@ SELECT
     point.intrinsicReference, point.deltaPosition,
     Balise.id,
     Balise.positionInGroup, IF(Balise.duplicate='no', 0, IF(Balise.duplicate='yes', 1, NULL)) AS "duplicate",
-    bg_names.name
+    bg_names.name,
+    Balise.defaultTelegram
 FROM
     cte
         INNER JOIN
     `NamedResource` elem_name ON elem_name.id = cte.element
         LEFT OUTER JOIN
-    `AssociatedPoint` point ON cte.element = point.id_PositioningNetElement
+    `AssociatedPosition` point ON cte.element = point.id_PositioningNetElement
         LEFT OUTER JOIN
-    `LocationFeatureAssignment` l_f ON point.id = l_f.id_AssociatedFeature
+    `AssociatedLocationFeature` l_f ON point.id = l_f.id_AssociatedFeature
         LEFT OUTER JOIN
-    `LocatedNetEntity` ON l_f.id_FunctionalLocation = `LocatedNetEntity`.id_EntityLocation_Primary
+    `LocatedNetEntity` ON l_f.id_AssociatedLocation = `LocatedNetEntity`.id_EntityLocation_Primary
         LEFT OUTER JOIN
     `Balise` ON `Balise`.id = `LocatedNetEntity`.id
         LEFT OUTER JOIN
