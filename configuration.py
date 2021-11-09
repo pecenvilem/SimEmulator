@@ -21,7 +21,7 @@ DATABASE_AUTOCONNECT = True
 
 STARTING_NET_ELEMENT = "9f5aea90-d268-466e-8b9c-032c4183a8d3"
 
-STARTING_OFFSET = 1000  # m
+STARTING_OFFSET = 404  # m
 
 
 ##################################################

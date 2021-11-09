@@ -199,9 +199,9 @@ class Sim:
 
                 # ETCS service brake
                 if etcs_brake:
-                    traction = "-"
-                    # if tl > 3.5: # TODO: PARAM
-                    if tl > self.TL_PRESS_MAX_TR_BR:
+                    traction = "off"
+                    if tl > 3.5: # TODO: PARAM
+                    # if tl > self.TL_PRESS_MAX_TR_BR:
                         train_brake = "apply"
                     else:
                         train_brake = "hold"
@@ -504,6 +504,8 @@ class MqttComm(Comm):
         try:
             self.controller.comm_variables["BRAKE"].set(data["service_brake"])
             self.controller.comm_variables["EP_VALVE"].set(data["emergency_brake"])
+            print(f"EP_VALVE: {data['emergency_brake']}")
+            print(f"SERVICE BRAKE: {data['service_brake']}")
         except KeyError:
             print("Invalid data received from EVC!")
 
@@ -512,7 +514,7 @@ class MqttComm(Comm):
             if not self.paused:
                 self.client.loop()
                 data = json.dumps(
-                    {"train_speed": self.controller.comm_variables["SPEED"].get()}
+                    {"train_speed": self.controller.comm_variables["SPEED"].get()/3.6}
                 )
                 self.client.publish("odo/evc", data)
                 data = json.dumps(

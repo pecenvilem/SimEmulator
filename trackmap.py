@@ -128,7 +128,8 @@ class TrackMap(tk.Frame):
                             "M_VERSION": (def_tgmr & (127 << (i - 8))) >> (i - 8),  # 7 bits [2-8]
                             "Q_MEDIA": (def_tgmr & (1 << (i - 9))) >> (i - 9),  # 1 bit [9],
                             "N_PIG": (def_tgmr & (7 << (i - 12))) >> (i - 12),  # 3 bits [10-12],
-                            "N_TOTAL": (def_tgmr & (7 << (i - 15))) >> (i - 15),  # 3 bits [13-15],
+                            # "N_TOTAL": (def_tgmr & (7 << (i - 15))) >> (i - 15),  # 3 bits [13-15],
+                            "N_TOTAL": 1,  # 3 bits [13-15],
                             "M_DUP": (def_tgmr & (3 << (i - 17))) >> (i - 17),  # 2 bits [16-17],
                             "M_MCOUNT": (def_tgmr & (255 << (i - 25))) >> (i - 25),  # 8 bits [18-25],
                             "NID_C": (def_tgmr & (1023 << (i - 35))) >> (i - 35),  # 10 bits [26-35],
@@ -205,7 +206,10 @@ class TrackMap(tk.Frame):
             balise["position"] -= distance
             if -self.range / 2 <= balise["position"] <= self.range / 2:
                 telegrams.append(balise["telegram"])
-        string = f"[{','.join(telegrams)}]"
+        if telegrams:
+            string = telegrams[0]
+        else:
+            string = '[]'
         self.variable.set(string)
         if distance != 0:
             self.refresh()
