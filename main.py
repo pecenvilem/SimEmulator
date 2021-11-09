@@ -131,7 +131,6 @@ class Sim(object):
         traction = "-"
         edb = "hold"
         o_s = 9.81 * self.mass * np.sin(np.arctan(self.slope / 1000))  # N
-        slip = False
         speed = 0
 
         while self._run:
@@ -140,8 +139,7 @@ class Sim(object):
             if not self._pause:
                 # LOAD values from input variables
                 epv = self.controller.comm_variables["EP_VALVE"].get()
-                if not slip:
-                    speed = self.controller.comm_variables["SPEED"].get() / 3.6  # m/s
+                speed = self.controller.comm_variables["SPEED"].get() / 3.6  # m/s
                 tl = self.controller.comm_variables["TRAIN_LINE_PRESSURE"].get()
                 bc = self.controller.comm_variables["BRAKE_CYLINDER_PRESSURE"].get()
                 traction_indication = self.controller.sim_variables["TRACTION"].get() * 1000  # N
@@ -173,7 +171,8 @@ class Sim(object):
                 elif hjp == 5:  # SOUHLAS
                     train_brake = "release"
                     edb = "off"
-                    if tb_application <= 0 and bc <= 0:
+                    # if tb_application <= 0 and bc <= 0:
+                    if bc <= 0:
                         traction = "+"
                     else:
                         traction = "hold"
@@ -270,18 +269,10 @@ class Sim(object):
 
                 direct_brake = bc / MAX_DIR_BR_APPL * self.LOCO_PARKING_BRAKE * 1000
 
-                # WHEEL SLIP
-                o_v = (self.c + self.b * abs(speed) * 3.6 + self.a * (speed * 3.6) ** 2) * self.mass / 1000 * 9.81
-                ft = 88 * 1000 * 9.81 * self.mu(abs(speed)) * self.adhes_util
-                if max(traction_indication, -traction_indication + direct_brake) > ft:
-                    self.controller.sim_variables["SLIP"].set(True)
-                    slip = True
-                else:
-                    self.controller.sim_variables["SLIP"].set(False)
-                    slip = False
                 brake += direct_brake
 
                 # SPEED
+                o_v = (self.c + self.b * abs(speed) * 3.6 + self.a * (speed * 3.6) ** 2) * self.mass / 1000 * 9.81
                 tractive_force = - o_s + (direction * traction_indication if traction_indication > 0 else 0)
                 resistance = brake + o_v + (-traction_indication if traction_indication < 0 else 0)
                 if speed != 0:
@@ -299,10 +290,7 @@ class Sim(object):
                 self.controller.mp.track.shift(dist)
 
                 # SEND and DISPLAY output values
-                if slip:
-                    self.controller.comm_variables["SPEED"].set(min(speed * 3.6 * random.uniform(0.1, 3), 220))  # km/h
-                else:
-                    self.controller.comm_variables["SPEED"].set(speed * 3.6)  # km/h
+                self.controller.comm_variables["SPEED"].set(speed * 3.6)  # km/h
                 self.controller.comm_variables["TRAIN_LINE_PRESSURE"].set(tl)
                 self.controller.comm_variables["BRAKE_CYLINDER_PRESSURE"].set(bc)
                 self.controller.sim_variables["TRACTION_TARGET"].set(traction_target / 1000)  # kN
