@@ -48,6 +48,11 @@ class TrackMap(tk.Frame):
             self.canvas.create_text(x2 + 5, y2, text=f"{next(labels_detail)} m", anchor="w")
             self.canvas.create_line(x1, y1, x2, y2, tag="mark")
         self.balises = []
+        self.telegrams_pending = []
+        self.telegram_in_transit = False
+
+    def clear_for_next_telegram(self):
+        self.telegram_in_transit = False
 
     def load_data(self):
         tl = tk.Toplevel(self)
@@ -85,6 +90,7 @@ class TrackMap(tk.Frame):
                 data = cursor.fetchall()
                 self.balises = []
                 total_dist = 0
+                from configuration import STARTING_OFFSET
                 for i, record in enumerate(data):
                     element, length, intrinsic, delta, balise, pos_in_group, duplicate, group, def_tgmr,  *_ = record
                     if i != 0:
@@ -140,15 +146,13 @@ class TrackMap(tk.Frame):
                             }
                         }
                         # common append for both the original and new method of reading telegrams
-                        self.balises.append({"position": dist, "telegram": json.dumps(telegram)})
+                        self.balises.append({"position": dist - STARTING_OFFSET, "telegram": json.dumps(telegram)})
                 if not DATABASE_AUTOCONNECT:
                     msb.showinfo(
                         "Načtení dat",
                         f"Načteno {len(self.balises)} balíz."
                     )
                 self.refresh()
-                from configuration import STARTING_OFFSET
-                self.shift(STARTING_OFFSET)
             finally:
                 cursor.close()
                 connection.close()
@@ -201,15 +205,11 @@ class TrackMap(tk.Frame):
         return self.height / 2 - value / 5 * self.height / 2
 
     def shift(self, distance):
-        telegrams = []
         for balise in self.balises:
+            if balise["position"] * (balise["position"] - distance) <= 0 and balise["position"] != 0:                self.telegrams_pending.append(balise["telegram"])
             balise["position"] -= distance
-            if -self.range / 2 <= balise["position"] <= self.range / 2:
-                telegrams.append(balise["telegram"])
-        if telegrams:
-            string = telegrams[0]
-        else:
-            string = '[]'
-        self.variable.set(string)
+        if not self.telegram_in_transit and self.telegrams_pending:
+            self.telegram_in_transit
+            self.variable.set(self.telegrams_pending.pop(0))
         if distance != 0:
             self.refresh()

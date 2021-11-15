@@ -4,12 +4,19 @@
 
 # connection details are stored in secrets.py file
 
+MQTT_LOOP_FREQUENCY = 1000
+
 MQTT_AUTOCONNECT = True
 
 SUBCRIBE_TOPIC = "+/tiu/#"
 
-PUBLISH_FREQUENCY = 10  # Hz
-
+# intervals for transmitting values
+# positive numbers - interval in milliseconds [ms]
+# 0 - transmit only ON CHANGE
+# negative number - transmit in given interval [ms], when change occurs, transmit immediately
+ODO_INTERVAL = 25  # ms - i.e. 40 Hz
+TIU_INTERVAL = 0
+BTM_INTERVAL = 0
 
 ##################################################
 # DATABASE CONNECTION ############################
@@ -21,7 +28,7 @@ DATABASE_AUTOCONNECT = True
 
 STARTING_NET_ELEMENT = "9f5aea90-d268-466e-8b9c-032c4183a8d3"
 
-STARTING_OFFSET = 404  # m
+STARTING_OFFSET = 403  # m
 
 
 ##################################################

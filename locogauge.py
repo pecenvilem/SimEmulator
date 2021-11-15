@@ -628,8 +628,9 @@ class RotarySwitch(Switch):
                     self.position = from_ if RotarySwitch.in_arc(self.position, trg_pos, from_) else trg_pos
                 else:
                     self.position = to if RotarySwitch.in_arc(trg_pos, self.position, to) else trg_pos
-        self.notch = self.pos2notch(self.position)
-        self.variable.set(self.notch.value)
+        if self.pos2notch(self.position) != self.notch:
+            self.notch = self.pos2notch(self.position)
+            self.variable.set(self.notch.value)
         self.draw(self.position)
 
     def pos2notch(self, position, exclude_momentary=False):
@@ -691,8 +692,9 @@ class LeaverSwitch(Switch):
             if _from < position < to:
                 position = self.position
         self.position = position
-        self.notch = self.pos2notch(self.position)
-        self.variable.set(self.notch.value)
+        if self.pos2notch(self.position) != self.notch:
+            self.notch = self.pos2notch(self.position)
+            self.variable.set(self.notch.value)
         self.draw(self.position)
 
     def pos2notch(self, position, exclude_momentary=False):

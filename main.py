@@ -163,7 +163,7 @@ class Sim:
                 traction_target = self.controller.sim_variables["TRACTION_TARGET"].get() * 1000  # N
                 hjp = self.controller.comm_variables["DRIVING_LEAVER"].get()
                 direction = self.controller.comm_variables["DIRECTION_LEAVER"].get()
-                direction = -1 if direction == 2 else direction
+                direction = -1 if direction == 0 else 0 if direction == 2 else direction
 
                 if hjp == 0:  # R
                     train_brake = "emergency"
@@ -335,7 +335,7 @@ class Sim:
 
 class Comm(ABC):
 
-    def __init__(self, controller, transmit_frq=50):
+    def __init__(self, controller, loop_frq=50):
         self.controller = controller
         self._run = False
         self.paused = True
@@ -343,7 +343,7 @@ class Comm(ABC):
         self.msg_handles = {}
         self.thread = threading.Thread(daemon=True)
         self.comm_config = {}
-        self.transmit_frq = transmit_frq
+        self.loop_frequency = loop_frq
         # TODO - Create method 'config' that checks if passed 'config_data' contains all information needed
         #  for this way of communication
 
@@ -398,8 +398,8 @@ class DummyComm(Comm):
     def get_tkinter_pane(self, parent):
         return DummyPane(parent, self)
 
-    def __init__(self, controller, transmit_frq=50):
-        super().__init__(controller, transmit_frq)
+    def __init__(self, controller, loop_frq=50):
+        super().__init__(controller, loop_frq)
 
     def __del__(self):
         self.stop()
@@ -465,13 +465,40 @@ class DummyPane(CommPane):
 
 class MqttComm(Comm):
 
-    def __init__(self, controller, transmit_frq=1):
-        super().__init__(controller, transmit_frq)
+    def __init__(self, controller, loop_frq=1):
+        super().__init__(controller, loop_frq)
         self.host = None
         self.port = None
         self.username = None
         self.password = None
         self.client = mqtt.Client(client_id="SimEmulator")
+        self.last_transmissions = {
+            "ODO": time.time(),
+            "TIU": time.time(),
+            "BTM": time.time()
+        }
+        self.tx_requests = {
+            "ODO": 0,
+            "TIU": 0,
+            "BTM": 0
+        }
+        from configuration import ODO_INTERVAL, TIU_INTERVAL, BTM_INTERVAL
+        if ODO_INTERVAL <= 0:
+            self.controller.comm_variables["SPEED"].trace("w", lambda *_: self.request_transmission("ODO"))
+        if TIU_INTERVAL <= 0:
+            self.controller.comm_variables["DIRECTION_LEAVER"].trace("w", lambda *_: self.request_transmission("TIU"))
+            self.controller.comm_variables["BATTERY"].trace("w", lambda *_: self.request_transmission("TIU"))
+            self.controller.comm_variables["CONTROL_SWITCH"].trace("w", lambda *_: self.request_transmission("TIU"))
+        if BTM_INTERVAL <= 0:
+            self.controller.comm_variables["BALISE_TELEGRAM"].trace("w", lambda *_: self.request_transmission("BTM"))
+        self.intervals = {
+            "ODO": abs(ODO_INTERVAL) / 1000 if ODO_INTERVAL != 0 else float("inf"),
+            "TIU": abs(TIU_INTERVAL) / 1000 if TIU_INTERVAL != 0 else float("inf"),
+            "BTM": abs(BTM_INTERVAL) / 1000 if BTM_INTERVAL != 0 else float("inf")
+        }
+
+    def request_transmission(self, key: str):
+        self.tx_requests[key] += 1
 
     def __del__(self):
         self.stop()
@@ -493,41 +520,66 @@ class MqttComm(Comm):
         from configuration import SUBCRIBE_TOPIC
         self.client.subscribe(SUBCRIBE_TOPIC)
         self.client.on_message = self.on_message
+        self.client.on_disconnect = self.on_disconect
         self.thread = threading.Thread(target=self.run, daemon=True)
         self._run = True
         self.paused = False
         self.thread.start()
         return True
 
+    def on_disconect(self, client, userdata, rc):
+        if self._run:
+            self.client.reconnect()
+            # self.client.subscribe("+/tiu/#") # TODO - PARAM: message structure
+            from configuration import SUBCRIBE_TOPIC
+            self.client.subscribe(SUBCRIBE_TOPIC)
+
     def on_message(self, client, userdata, message):
         data = json.loads(message.payload.decode('ascii'))
         try:
             self.controller.comm_variables["BRAKE"].set(data["service_brake"])
             self.controller.comm_variables["EP_VALVE"].set(data["emergency_brake"])
-            print(f"EP_VALVE: {data['emergency_brake']}")
-            print(f"SERVICE BRAKE: {data['service_brake']}")
         except KeyError:
             print("Invalid data received from EVC!")
 
     def run(self):
         while self._run:
             if not self.paused:
-                self.client.loop()
-                data = json.dumps(
-                    {"train_speed": self.controller.comm_variables["SPEED"].get()/3.6}
-                )
-                self.client.publish("odo/evc", data)
-                data = json.dumps(
-                    {
-                        "battery_power": self.controller.comm_variables["BATTERY"].get(),
-                        "cab": self.controller.comm_variables["CONTROL_SWITCH"].get(),
-                        "train_direction": self.controller.comm_variables["DIRECTION_LEAVER"].get()
-                    }
-                )
-                self.client.publish("tiu/evc", data)
-                self.client.publish("btm/evc", self.controller.comm_variables["BALISE_TELEGRAM"].get())
+                self.client.loop(timeout=1/self.loop_frequency)
 
-            time.sleep(1 / self.transmit_frq)
+                # ODO
+                if time.time() >= self.last_transmissions["ODO"] + self.intervals["ODO"] or self.tx_requests["ODO"]:
+                    data = json.dumps(
+                        {"train_speed": self.controller.comm_variables["SPEED"].get()/3.6}
+                    )
+                    self.client.publish("odo/evc", data)
+                    self.last_transmissions["ODO"] = time.time()
+                    if self.tx_requests["ODO"]:
+                        self.tx_requests["ODO"] -= 1
+
+                # TIU
+                if time.time() >= self.last_transmissions["TIU"] + self.intervals["TIU"] or self.tx_requests["TIU"]:
+                    data = json.dumps(
+                        {
+                            "battery_power": self.controller.comm_variables["BATTERY"].get(),
+                            "cab": self.controller.comm_variables["CONTROL_SWITCH"].get(),
+                            "train_direction": self.controller.comm_variables["DIRECTION_LEAVER"].get()
+                        }
+                    )
+                    self.client.publish("tiu/evc", data)
+                    self.last_transmissions["TIU"] = time.time()
+                    if self.tx_requests["TIU"]:
+                        self.tx_requests["TIU"] -= 1
+
+                # BTM
+                if time.time() >= self.last_transmissions["BTM"] + self.intervals["BTM"] or self.tx_requests["BTM"]:
+                    self.client.publish("btm/evc", self.controller.comm_variables["BALISE_TELEGRAM"].get())
+                    self.controller.mp.track.clear_for_next_telegram()
+                    self.last_transmissions["BTM"] = time.time()
+                    if self.tx_requests["BTM"]:
+                        self.tx_requests["BTM"] -= 1
+
+            time.sleep(1 / self.loop_frequency)
 
     def resume(self):
         pass
@@ -903,9 +955,9 @@ class ConnectPage(tk.Frame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(10, weight=1)
 
-        from configuration import PUBLISH_FREQUENCY
+        from configuration import MQTT_LOOP_FREQUENCY
         self.comms = [
-            ("MQTT", MqttComm(self.controller, transmit_frq=PUBLISH_FREQUENCY), None),
+            ("MQTT", MqttComm(self.controller, loop_frq=MQTT_LOOP_FREQUENCY), None),
             ("Test", DummyComm(self.controller), None)
         ]
 
