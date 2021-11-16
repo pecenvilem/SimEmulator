@@ -14,7 +14,7 @@ SUBCRIBE_TOPIC = "+/tiu/#"
 # positive numbers - interval in milliseconds [ms]
 # 0 - transmit only ON CHANGE
 # negative number - transmit in given interval [ms], when change occurs, transmit immediately
-ODO_INTERVAL = 25  # ms - i.e. 40 Hz
+ODO_INTERVAL = 100  # ms - i.e. 40 Hz
 TIU_INTERVAL = 0
 BTM_INTERVAL = 0
 
@@ -28,7 +28,7 @@ DATABASE_AUTOCONNECT = True
 
 STARTING_NET_ELEMENT = "9f5aea90-d268-466e-8b9c-032c4183a8d3"
 
-STARTING_OFFSET = 403  # m
+STARTING_OFFSET = 1800  # m
 
 
 ##################################################
