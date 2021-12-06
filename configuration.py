@@ -4,17 +4,20 @@
 
 # connection details are stored in secrets.py file
 
+# number of communication loop run per second - internal delay after each loop is set accordingly
 MQTT_LOOP_FREQUENCY = 1000
 
+# connect automatically after startup without prompting the user
 MQTT_AUTOCONNECT = True
 
+# MQTT topic designated for incoming messages (only messages from EVC are expected)
 SUBCRIBE_TOPIC = "+/tiu/#"
 
 # intervals for transmitting values
 # positive numbers - interval in milliseconds [ms]
 # 0 - transmit only ON CHANGE
 # negative number - transmit in given interval [ms], when change occurs, transmit immediately
-ODO_INTERVAL = 100  # ms - i.e. 40 Hz
+ODO_INTERVAL = 100  # ms - i.e. 10 Hz
 TIU_INTERVAL = 0
 BTM_INTERVAL = 0
 
@@ -24,11 +27,41 @@ BTM_INTERVAL = 0
 
 # connection details are stored in secrets.py file
 
+# connect automatically after startup without prompting the user
 DATABASE_AUTOCONNECT = True
 
+# if for some reason no connection to database is possible, uncomment the following 'BALISES' placeholder
+# it will be then used instead of any loaded data;
+# if the connection should be performed, 'BALISES' must be set to []
+
+# BALISES = []
+BALISES = [
+    {'position': 2997.4, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 2, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 7497.4, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 5, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 2999.9, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 2, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 7499.9, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 5, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 4497.4, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 3, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 5999.9, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 4, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 4499.9, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 3, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 8999.9, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 6, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 8997.4, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 6, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 1499.9, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 1, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 1497.4, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 1, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 5997.4, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 4, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': -0.100, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 0, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': -2.600, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 0, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'}
+]
+
+# netElement id that the SQL query for fetching balise data is based upon
 STARTING_NET_ELEMENT = "9f5aea90-d268-466e-8b9c-032c4183a8d3"
 
-STARTING_OFFSET = 1800  # m
+# SQL query definition
+QUERY_FILE = "balises.sql"
+# QUERY_FILE = "balises_x21.sql"
+
+# after loading balise positions, shift all positions by 'STARTING_OFFSET' towards the locomotive
+# TODO: set in accordance with data used by EVC
+STARTING_OFFSET = 402.6  # m
 
 
 ##################################################
@@ -36,10 +69,10 @@ STARTING_OFFSET = 1800  # m
 ##################################################
 
 # maximal pressure in train indirect brake cylinder
-MAX_TR_BR_APPL = 3.8  # bar [max train brake application]
+MAX_TR_BR_APL = 3.8  # bar [max train brake application]
 
 # maximal pressure in loco direct brake cylinder
-MAX_DIR_BR_APPL = 6  # bar [max direct brake application]
+MAX_DIR_BR_APL = 6  # bar [max direct brake application]
 
 # pressure in the train line (i.e. main brake pipe) when train brake is fully released
 MAX_TL_PRESS = 5  # bar
@@ -47,16 +80,16 @@ MAX_TL_PRESS = 5  # bar
 # default train mass
 MASS = 200  # t
 
-# default DEceleration when full train brake is applied (excluding loco brakes)
+# default DECELERATION when full train brake is applied (excluding loco brakes)
 ACCELERATION = 0.9  # m/s/s
 
 # actual max brake force calculated from required deceleration at full train brake application
 BRAKING_FORCE = MASS * ACCELERATION  # kN
 
-# time needed to fill train brake cylinders from 0 to MAX_TR_BR_APPL
+# time needed to fill train brake cylinders from 0 to MAX_TR_BR_APL
 FILLING_TIME = 7  # s
 
-# time needed to empty train brake cylinders from MAX_TR_BR_APPL to 0
+# time needed to empty train brake cylinders from MAX_TR_BR_APL to 0
 VENTING_TIME = 16  # s
 
 # max power of the locomotive
@@ -83,6 +116,9 @@ TRAIN_LINE_DP = 0.20  # bar/s
 # time needed to empty the train line (brake pipe) when emergency brake is applied
 TRAIN_LINE_VENT_TIME = 1.5  # s
 
+# mass of the locomotive
+LOCO_MASS = 88  # t
+
 # brake force exerted by fully applied locomotive direct brake
 LOCO_PARKING_BRAKE = 35  # kN
 
@@ -94,6 +130,9 @@ LOCO_MAX_EDB = 150  # kN
 
 # max locomotive tractive effort
 LOCO_MAX_TRACTION = 300  # kN
+
+# rate, at which relative tractive effort is changed
+LOCO_DRELEFR = 1 / 7  # 1/s [*100 = %/s]
 
 # rate, at which tractive force is changed
 LOCO_DTRAX = LOCO_MAX_TRACTION / 6  # kN/s

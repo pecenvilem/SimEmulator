@@ -1,11 +1,14 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Callable, Tuple, Any
+from typing import Callable, Tuple, Any, Optional
 import os
 import tkinter as tk
 import tkinter.font as tf
 import numpy as np
 np.seterr(all="raise")
+
+DIR = os.getcwd()
+IMG = os.path.join(DIR, "img")
 
 
 class SpeedGauge(tk.Frame):
@@ -122,6 +125,10 @@ class TractiveEffortGauge(tk.Frame):
             var.trace("w", lambda *_, v=var: self.tractive_effort(v.get()))
         if var := kwargs.pop("target_variable", None):
             var.trace("w", lambda *_, v=var: self.target(v.get()))
+        if var := kwargs.pop("relative_effort_variable", None):
+            var.trace("w", lambda *_, v=var: self.relative_effort(v.get()))
+        if var := kwargs.pop("show_relative_effort_variable", None):
+            var.trace("w", lambda *_, v=var: self.relative_effort_display(v.get()))
         self.size = kwargs.pop("size", 300)
         super().__init__(parent, *args, **kwargs)
         self.canvas = tk.Canvas(self, bg="black", width=self.size, height=self.size)
@@ -136,6 +143,10 @@ class TractiveEffortGauge(tk.Frame):
         self.label_font = tf.Font(self, family="Gischa", size=int(-12 * q), weight="bold")
         self.effort_font = tf.Font(self, family="Gischa", size=int(-20 * q), weight="bold")
         self.unit_font = tf.Font(self, family="Gischa", size=int(-11 * q), weight="normal")
+        self.relative_effort_font = tf.Font(self, family="Gischa", size=int(-24 * q), weight="bold")
+        self.text_box_width = 80 * q
+        self.text_box_height = 30 * q
+        self.sep_bar_position = 0.7
 
         self.vertices = np.array([
             [self.size / 2, self.size / 2 - self.outer_ring, 1],
@@ -152,7 +163,7 @@ class TractiveEffortGauge(tk.Frame):
         x1 = x2 = self.size / 2
         y1 = self.size - 12 * q
         y2 = self.size - 70 * q
-        self.canvas.create_line(x1, y1, x2, y2, width=int(5 * q), fill="white")
+        self.canvas.create_line(x1, y1, x2, y2, width=int(5 * q), fill="white", tag="middle_line")
         x1 = y1 = self.size / 2 - self.inner_ring
         x2 = y2 = self.size / 2 + self.inner_ring
         self.canvas.create_oval(x1, y1, x2, y2, fill="black")
@@ -163,6 +174,24 @@ class TractiveEffortGauge(tk.Frame):
                                 font=self.unit_font, anchor="w")
         self.text = self.canvas.create_text(self.size / 2, self.size / 2, text="0", fill="white", font=self.effort_font)
         self.target_indicator = self.canvas.create_polygon(self.transform(np.deg2rad(0)), fill="blue")
+        x1 = (self.size - self.text_box_width) / 2
+        y1 = (self.size + self.outer_ring - self.inner_ring - self.text_box_height) / 2 + self.inner_ring - 10 * q
+        x2 = (self.size + self.text_box_width) / 2
+        y2 = (self.size + self.outer_ring - self.inner_ring + self.text_box_height) / 2 + self.inner_ring + 5 * q
+        self.canvas.create_rectangle(x1, y1, x2, y2, fill="black", tag="relative_effort_cover")
+        y1 = (self.size + self.outer_ring - self.inner_ring - self.text_box_height) / 2 + self.inner_ring
+        y2 = (self.size + self.outer_ring - self.inner_ring + self.text_box_height) / 2 + self.inner_ring
+        self.canvas.create_rectangle(x1, y1, x2, y2, fill="gray", tag="relative_effort")
+        x = (self.size - self.text_box_width) / 2 + self.text_box_width * self.sep_bar_position
+        self.canvas.create_line(x, y1, x, y2, width=self.minor_tick, fill="black", tag="relative_effort")
+        x = (self.size - self.text_box_width) / 2 + self.text_box_width * (self.sep_bar_position + 1) / 2
+        y = (self.size + self.outer_ring - self.inner_ring) / 2 + self.inner_ring
+        self.canvas.create_text(x, y, text="%", font=self.relative_effort_font, tag="relative_effort")
+        x = (self.size - self.text_box_width) / 2 + self.text_box_width * self.sep_bar_position / 2
+        y = (self.size + self.outer_ring - self.inner_ring) / 2 + self.inner_ring
+        self.relative_effort_text = self.canvas.create_text(x, y, text="0",
+                                                            font=self.relative_effort_font,
+                                                            tag=("relative_effort_text", "relative_effort"))
 
         n = 25
         values = [25 * i for i in range(self.max_brake // 25, 0, -1)]
@@ -230,6 +259,21 @@ class TractiveEffortGauge(tk.Frame):
             fill = "yellow"
         self.canvas.delete(self.target_indicator)
         self.target_indicator = self.canvas.create_polygon(self.transform(angle), fill=fill)
+
+    def relative_effort(self, value):
+        try:
+            s = str(int(value * 100))
+        except ValueError as e:
+            raise ValueError(f"Can't display passed {type(value)} on TractiveEffortGauge!") from e
+        self.canvas.itemconfigure('relative_effort_text', text=s)
+
+    def relative_effort_display(self, value):
+        if value:
+            self.canvas.tag_lower('relative_effort_cover', 'relative_effort')
+            self.canvas.tag_lower('middle_line', 'relative_effort_cover')
+        else:
+            self.canvas.tag_raise('relative_effort_cover', 'relative_effort')
+            self.canvas.tag_raise('middle_line', 'relative_effort_cover')
 
 
 class PressureGauge(tk.Frame):
@@ -667,8 +711,10 @@ class LeaverSwitch(Switch):
             [0, 0, 1]
         ])
         # POLE for the leaver
-        pole_vertices = ((self.size / 2 - self.q * 20, self.size / 2),
-                        (self.size / 2 + self.q * 20, self.size * (1 - value) / 2))
+        pole_vertices = (
+            (self.size / 2 - self.q * 20, self.size / 2),
+            (self.size / 2 + self.q * 20, self.size * (1 - value) / 2)
+        )
         # leaver's HEAD
         head_vertices = (np.delete(matrix @ vertex.T, 2).astype(int) for vertex in self.vertices)
         render_info = [
@@ -715,13 +761,97 @@ class LeaverSwitch(Switch):
         return (self.size + (self.head_height * self.q - self.size) * position) / 2
 
 
+@dataclass
+class Key:
+    key_code: int
+    name: str
+    led: tuple
+    box: tuple
+    color: str
+    box_cnv_id: int = None
+    led_cnv_id: int = None
+
+
+def init_keypad_class(cls):
+    cls.generate_keys()
+    return cls
+
+
+@init_keypad_class
+class KeyPad(tk.Frame):
+
+    @classmethod
+    def generate_keys(cls):
+        led_x = [46, 82, 119, 155, 192, 245, 299, 335, 372, 408, 444, 481]
+        led_y = [54, 99, 144, 189]
+        rows = [
+            (49, 80), (94, 125), (139, 169), (184, 214)
+        ]
+        columns = [
+            (41, 71), (78, 107), (114, 143), (151, 180), (178, 216), (240, 270), (294, 323), (330, 359),
+            (367, 396), (403, 432), (440, 469), (476, 505)
+        ]
+        names = [
+            "priv_a", "rz_a", "f1", "f2", "f3", "p+", "kpj", "160", "170", "180", "190", "200",
+            "priv_b", "rz_b", "-0.5", "+0.5", "ojv", "p-", "+", "110", "120", "130", "140", "150",
+            "stuj", "opak", "ocek", "vy", "vo", "f+", "-", "60", "70", "80", "90", "100",
+            "n40", "n60", "n80", "n100", "bo", "f-", "0", "10", "20", "30", "40", "50"
+        ]
+        colors = [
+            "red", "red", "yellow", "yellow", "yellow", "yellow",
+            "yellow", "light green", "light green", "light green", "light green", "light green",
+            "red", "red", "yellow", "yellow", "light green", "yellow",
+            "yellow", "light green", "light green", "light green", "light green", "light green",
+            "red", "yellow", "yellow", "yellow", "light green", "yellow",
+            "yellow", "light green", "light green", "light green", "light green", "light green",
+            "yellow", "yellow", "yellow", "yellow", "light green", "yellow",
+            "light green", "light green", "light green", "light green", "light green", "light green",
+
+        ]
+        nc = len(columns)
+        boxes = []
+        for i in range(len(names)):
+            boxes.append(((columns[i % nc][0], rows[i // nc][0]), (columns[i % nc][1], rows[i // nc][1])))
+        leds = []
+        for i in range(len(names)):
+            leds.append((led_x[i % nc], led_y[i // nc]))
+        cls.keys = [Key(i, n, l, b, c) for i, n, l, b, c in zip(range(len(names)), names, leds, boxes, colors)]
+
+    def __init__(self, parent, *args, **kwargs):
+        try:
+            filename = kwargs.pop("filename")
+        except IndexError as e:
+            raise ValueError("Path to image resource for KeyPad not given!") from e
+        super().__init__(parent, *args, **kwargs)
+        width = 600
+        height = 256
+        self.canvas = tk.Canvas(self, width=width, height=height)
+        self.canvas.grid()
+        self.image = tk.PhotoImage(file=filename)
+        self.canvas.create_image(0, 0, anchor="nw", image=self.image)
+        self.keys = []
+        for key in KeyPad.keys:
+            key.box_cnv_id = self.canvas.create_rectangle(key.box, width=0, tag="button")
+            x, y = key.led
+            key.led_cnv_id = self.canvas.create_oval(x-3, y-3, x+3, y+3, fill=key.color,
+                                                     width=0, state="hidden", tag="led")
+            self.keys.append(key)
+        # self.canvas.tag_bind("button", "<Button-1>", self.dummy)
+        self.canvas.tag_bind("button", "<Double-Button-1>", self.dummy)
+        # self.canvas.bind("<ButtonRelease-1>", self.dummy)
+
+    def dummy(self, event):
+        print(self.canvas.find_overlapping(event.x, event.y, event.x, event.y))
+
+
 def main():
     img_path = os.path.join(os.getcwd(), "img\\hjp")
     root = tk.Tk()
-    SpeedGauge(root, max_=160).grid(row=0, column=0)
-    TractiveEffortGauge(root).grid(row=0, column=1)
-    ControlLeaver(root, img_path=img_path).grid(row=1, column=0)
-    PressureGauge(root).grid(row=1, column=1)
+    SpeedGauge(root, max_=160).grid(row=0, column=0, rowspan=3)
+    traction = TractiveEffortGauge(root)
+    traction.grid(row=0, column=1, rowspan=3)
+    ControlLeaver(root, img_path=img_path).grid(row=3, column=0)
+    PressureGauge(root).grid(row=3, column=1)
     positions = (
         SwitchPosition(position=0, label="0", value=0),
         SwitchPosition(position=90, label="1", value=1),
@@ -739,6 +869,19 @@ def main():
     LeaverSwitch(root,
                  notches=positions, block=(-1, 0),
                  size=100).grid(row=0, column=3)
+
+    positions = (
+        SwitchPosition(position=-90, label="N", value=0),
+        SwitchPosition(position=0, label="MAN", value=1),
+        SwitchPosition(position=45, label="ARR", value=2),
+        SwitchPosition(position=90, label="CB", value=3)
+    )
+    RotarySwitch(root,
+                 notches=positions,
+                 block=(90, 270),
+                 size=100).grid(row=1, column=2)
+
+    KeyPad(root, filename=os.path.join(IMG, "klavesnice AVV.gif")).grid(row=0, column=6, rowspan=3)
 
     root.mainloop()
 

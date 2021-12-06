@@ -1,7 +1,2 @@
 \venv\
-\.idea\
-\no_code\
 secrets.py
-sql_test.py
-database_dump.py
-db.sql

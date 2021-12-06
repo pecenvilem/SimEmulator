@@ -4,7 +4,8 @@ import tkinter.messagebox as msb
 import mysql.connector
 import re
 from secrets import db_host, db_user, db_password, db_database
-with open("balises.sql", "rt") as f:
+from configuration import QUERY_FILE
+with open(QUERY_FILE, "rt") as f:
     query = f.read()
 # TODO: PARAM
 from configuration import STARTING_NET_ELEMENT
@@ -134,6 +135,7 @@ class TrackMap(tk.Frame):
                             "M_VERSION": (def_tgmr & (127 << (i - 8))) >> (i - 8),  # 7 bits [2-8]
                             "Q_MEDIA": (def_tgmr & (1 << (i - 9))) >> (i - 9),  # 1 bit [9],
                             "N_PIG": (def_tgmr & (7 << (i - 12))) >> (i - 12),  # 3 bits [10-12],
+                            # TODO: Remove placeholder for N_TOTAL variable when DB data is corrected!
                             # "N_TOTAL": (def_tgmr & (7 << (i - 15))) >> (i - 15),  # 3 bits [13-15],
                             "N_TOTAL": 1,  # 3 bits [13-15],
                             "M_DUP": (def_tgmr & (3 << (i - 17))) >> (i - 17),  # 2 bits [16-17],
@@ -168,7 +170,13 @@ class TrackMap(tk.Frame):
         tk.Entry(tl, textvariable=database).grid(row=3, column=1)
         tk.Button(tl, text="Načíst", command=load).grid(row=4, column=1, columnspan=2)
 
-        from configuration import DATABASE_AUTOCONNECT
+        from configuration import BALISES, DATABASE_AUTOCONNECT
+        if BALISES:
+            self.balises = BALISES
+            self.refresh()
+            tl.destroy()
+            return
+
         if DATABASE_AUTOCONNECT:
             load()
 

@@ -1,5 +1,6 @@
 from tkinter.font import Font
 from abc import ABC, abstractmethod
+
 from locogauge import SpeedGauge, TractiveEffortGauge, PressureGauge, ControlLeaver, RotarySwitch, SwitchPosition, \
     LeaverSwitch
 from trackmap import TrackMap
@@ -23,6 +24,7 @@ COMM_CONFIG = os.path.join(DIR, "comm_config.json")
 HJP = os.path.join(IMG, "hjp")
 
 
+# noinspection SpellCheckingInspection
 class Sim:
     """Slouží k fyzikální simulaci pohybu vlaku"""
 
@@ -46,11 +48,12 @@ class Sim:
     # LOCO_DTRAX = LOCO_MAX_TRACTION / 6  # kN/s # TODO: PARAM
     # LOCO_DEDB = LOCO_MAX_EDB / 6  # kN/s # TODO: PARAM
     # LOCO_TRACTION_DELAY = 0.4  # s # TODO: PARAM
-    # MAX_TR_BR_APPL = 3.8    # bar # TODO: PARAM
-    # MAX_DIR_BR_APPL = 6     # bar # TODO: PARAM
+    # MAX_TR_BR_APL = 3.8    # bar # TODO: PARAM
+    # MAX_DIR_BR_APL = 6     # bar # TODO: PARAM
     # MAX_TL_PRESS = 5        # bar # TODO: PARAM
 
     from configuration import MASS
+    # noinspection PyUnresolvedReferences
     from configuration import ACCELERATION
     from configuration import BRAKING_FORCE
     from configuration import FILLING_TIME
@@ -61,16 +64,18 @@ class Sim:
     from configuration import A, B, C
     from configuration import TRAIN_LINE_DP
     from configuration import TRAIN_LINE_VENT_TIME
+    from configuration import LOCO_MASS
     from configuration import LOCO_PARKING_BRAKE
     from configuration import LOCO_PARKING_TIME
     from configuration import LOCO_MAX_EDB
     from configuration import LOCO_MAX_TRACTION
+    from configuration import LOCO_DRELEFR
     from configuration import LOCO_DTRAX
     from configuration import LOCO_DEDB
     from configuration import LOCO_TRACTION_DELAY
     from configuration import TL_PRESS_MAX_TR_BR
-    from configuration import MAX_TR_BR_APPL
-    from configuration import MAX_DIR_BR_APPL
+    from configuration import MAX_TR_BR_APL
+    from configuration import MAX_DIR_BR_APL
     from configuration import MAX_TL_PRESS
     from configuration import TRACTION_CUT_OFF
     from configuration import TL_VENT_ELBOW
@@ -91,6 +96,7 @@ class Sim:
         self.train_brake = self.BRAKING_FORCE * 1000  # N
         self.fill_time = self.FILLING_TIME
         self.vent_time = self.VENTING_TIME
+        self.loco_mass = self.LOCO_MASS * 1000  # kg
         self.power = self.POWER
         self.slope = self.SLOPE
         self.adhes_util = self.ADHESION_UTILISATION
@@ -147,6 +153,8 @@ class Sim:
         traction = "-"
         edb = "hold"
         o_s = 9.81 * self.mass * np.sin(np.arctan(self.slope / 1000))  # N
+        relative_effort = 0
+        # noinspection PyUnusedLocal
         speed = 0
 
         while self._run:
@@ -162,6 +170,7 @@ class Sim:
                 traction_indication = self.controller.sim_variables["TRACTION"].get() * 1000  # N
                 traction_target = self.controller.sim_variables["TRACTION_TARGET"].get() * 1000  # N
                 hjp = self.controller.comm_variables["DRIVING_LEAVER"].get()
+                mode = self.controller.sim_variables["CONTROL_MODE"].get()
                 direction = self.controller.comm_variables["DIRECTION_LEAVER"].get()
                 direction = -1 if direction == 0 else 0 if direction == 2 else direction
 
@@ -171,7 +180,7 @@ class Sim:
                     traction = "off"
                 elif hjp == 1:  # BP
                     train_brake = "apply"
-                    edb = "hold"
+                    edb = "apply"
                     traction = "off"
                 elif hjp == 2:  # BE
                     train_brake = "hold"
@@ -200,8 +209,9 @@ class Sim:
                 # ETCS service brake
                 if etcs_brake:
                     traction = "off"
-                    if tl > 3.5: # TODO: PARAM
+                    edb = "full"
                     # if tl > self.TL_PRESS_MAX_TR_BR:
+                    if tl > 3.5:  # TODO: PARAM
                         train_brake = "apply"
                     else:
                         train_brake = "hold"
@@ -213,25 +223,53 @@ class Sim:
                     edb = "full"
 
                 # TRACTION & EDB
-                if traction == "+":
-                    if traction_target >= 0:
-                        traction_target = min(traction_target + dt * self.LOCO_DTRAX * 1000,
-                                              self.LOCO_MAX_TRACTION * 1000)
-                elif traction == "-":
-                    if traction_target >= 0:
-                        traction_target = max(traction_target - dt * self.LOCO_DTRAX * 1000, 0)
-                elif traction == "off":
-                    traction_target = min(traction_target, 0)
+                if mode > 0:
+                    if traction == "+":
+                        if relative_effort >= 0:
+                            relative_effort = min(relative_effort + dt * self.LOCO_DRELEFR, 1)
+                    elif traction == "-":
+                        if relative_effort >= 0:
+                            relative_effort = max(relative_effort - dt * self.LOCO_DRELEFR, 0)
+                    elif traction == "off":
+                        relative_effort = min(relative_effort, 0)
 
-                if edb == "full":
-                    traction_target = -self.LOCO_MAX_EDB * 1000
-                elif edb == "apply":
-                    traction_target = max(traction_target - dt * self.LOCO_DEDB * 1000, -self.LOCO_MAX_EDB * 1000)
-                elif edb == "release":
-                    if traction_target < 0:
-                        traction_target = min(traction_target + dt * self.LOCO_DEDB * 1000, 0)
-                elif edb == "off":
-                    traction_target = max(traction_target, 0)
+                    if edb == "full":
+                        relative_effort = -1
+                    elif edb == "apply":
+                        relative_effort = max(relative_effort - dt * self.LOCO_DRELEFR, -1)
+                    elif edb == "release":
+                        if relative_effort < 0:
+                            relative_effort = min(relative_effort + dt * self.LOCO_DRELEFR, 0)
+                    elif edb == "off":
+                        relative_effort = max(relative_effort, 0)
+
+                    if relative_effort > 0:
+                        f_max = min(self.loco_mass * 9.81 * Sim.mu(speed), self.LOCO_MAX_TRACTION * 1000)
+                        traction_target = f_max * relative_effort
+                    else:
+                        traction_target = self.LOCO_MAX_EDB * 1000 * relative_effort
+
+                else:
+                    relative_effort = 0
+                    if traction == "+":
+                        if traction_target >= 0:
+                            traction_target = min(traction_target + dt * self.LOCO_DTRAX * 1000,
+                                                  self.LOCO_MAX_TRACTION * 1000)
+                    elif traction == "-":
+                        if traction_target >= 0:
+                            traction_target = max(traction_target - dt * self.LOCO_DTRAX * 1000, 0)
+                    elif traction == "off":
+                        traction_target = min(traction_target, 0)
+
+                    if edb == "full":
+                        traction_target = -self.LOCO_MAX_EDB * 1000
+                    elif edb == "apply":
+                        traction_target = max(traction_target - dt * self.LOCO_DEDB * 1000, -self.LOCO_MAX_EDB * 1000)
+                    elif edb == "release":
+                        if traction_target < 0:
+                            traction_target = min(traction_target + dt * self.LOCO_DEDB * 1000, 0)
+                    elif edb == "off":
+                        traction_target = max(traction_target, 0)
 
                 if train_brake == "emergency" and traction_indication > 0:
                     traction_indication = 0
@@ -280,29 +318,29 @@ class Sim:
                     tl = min(5, tl + self.TRAIN_LINE_DP * dt)
                 # TODO: PARAM
                 # reduction_percentage = min(self.MAX_TL_PRESS - tl, self.MAX_TL_PRESS - 3.5)/(self.MAX_TL_PRESS - 3.5)
-                reduction_percentage = min(self.MAX_TL_PRESS - tl,
-                                           self.MAX_TL_PRESS - self.TL_PRESS_MAX_TR_BR) / (self.MAX_TL_PRESS - self.TL_PRESS_MAX_TR_BR)
-
-                tb_target = reduction_percentage * self.MAX_TR_BR_APPL
+                nom = min(self.MAX_TL_PRESS - tl, self.MAX_TL_PRESS - self.TL_PRESS_MAX_TR_BR)
+                denom = self.MAX_TL_PRESS - self.TL_PRESS_MAX_TR_BR
+                reduction_percentage = nom / denom
+                tb_target = reduction_percentage * self.MAX_TR_BR_APL
                 if tb_application > tb_target:
-                    tb_application = max(tb_target, tb_application - dt / self.vent_time * self.MAX_TR_BR_APPL)
+                    tb_application = max(tb_target, tb_application - dt / self.vent_time * self.MAX_TR_BR_APL)
                 else:
-                    tb_application = min(tb_target, tb_application + dt / self.fill_time * self.MAX_TR_BR_APPL)
+                    tb_application = min(tb_target, tb_application + dt / self.fill_time * self.MAX_TR_BR_APL)
 
-                brake = tb_application / self.MAX_TR_BR_APPL * self.train_brake
+                brake = tb_application / self.MAX_TR_BR_APL * self.train_brake
 
                 # DIRECT BRAKE
                 # if abs(speed) < 1.0 / 3.6 and hjp not in (4, 5):  # AUTOMATIC PARKING # TODO: PARAM
                 if abs(speed) < self.PARKING_BRAKE_AUTOMATIC_ENGAGE / 3.6 and hjp not in (4, 5):
-                    db_target = self.MAX_DIR_BR_APPL
+                    db_target = self.MAX_DIR_BR_APL
                 else:
-                    db_target = reduction_percentage * self.MAX_DIR_BR_APPL
+                    db_target = reduction_percentage * self.MAX_DIR_BR_APL
                 if bc < db_target:
-                    bc = min(db_target, bc + dt / self.LOCO_PARKING_TIME * self.MAX_DIR_BR_APPL)
+                    bc = min(db_target, bc + dt / self.LOCO_PARKING_TIME * self.MAX_DIR_BR_APL)
                 else:
-                    bc = max(db_target, bc - dt / self.LOCO_PARKING_TIME * self.MAX_DIR_BR_APPL)
+                    bc = max(db_target, bc - dt / self.LOCO_PARKING_TIME * self.MAX_DIR_BR_APL)
 
-                direct_brake = bc / self.MAX_DIR_BR_APPL * self.LOCO_PARKING_BRAKE * 1000
+                direct_brake = bc / self.MAX_DIR_BR_APL * self.LOCO_PARKING_BRAKE * 1000
                 brake += direct_brake
 
                 # SPEED
@@ -327,6 +365,7 @@ class Sim:
                 self.controller.comm_variables["SPEED"].set(speed * 3.6)  # km/h
                 self.controller.comm_variables["TRAIN_LINE_PRESSURE"].set(tl)
                 self.controller.comm_variables["BRAKE_CYLINDER_PRESSURE"].set(bc)
+                self.controller.sim_variables["RELATIVE_EFFORT"].set(relative_effort)
                 self.controller.sim_variables["TRACTION_TARGET"].set(traction_target / 1000)  # kN
                 self.controller.sim_variables["TRACTION"].set(traction_indication / 1000)  # kN
 
@@ -527,6 +566,7 @@ class MqttComm(Comm):
         self.thread.start()
         return True
 
+    # noinspection PyUnusedLocal
     def on_disconect(self, client, userdata, rc):
         if self._run:
             self.client.reconnect()
@@ -534,6 +574,7 @@ class MqttComm(Comm):
             from configuration import SUBCRIBE_TOPIC
             self.client.subscribe(SUBCRIBE_TOPIC)
 
+    # noinspection PyUnusedLocal
     def on_message(self, client, userdata, message):
         data = json.loads(message.payload.decode('ascii'))
         try:
@@ -683,6 +724,8 @@ class Emulator(tk.Tk):
             "POWER": tk.StringVar(),
             "SLOPE": tk.StringVar(),
             "ADHESION_UTILISATION": tk.StringVar(),
+            "RELATIVE_EFFORT": tk.DoubleVar(),
+            "CONTROL_MODE": tk.IntVar(value=1)
         }
 
         # self.mp = MainPage(self.container, self)
@@ -799,47 +842,51 @@ class MainPage(tk.Frame):
 
         tk.Label(settings, text="Lokomotivní baterie").grid(row=8, column=1, sticky="e")
         tk.Radiobutton(settings, variable=self.controler.comm_variables["BATTERY"],
-                       value=0, text="Vypnuto").grid(row=8, column=2)
+                       value=0, text="Vypnuto").grid(row=8, column=2, columnspan=3)
         tk.Radiobutton(settings, variable=self.controler.comm_variables["BATTERY"],
-                       value=1, text="Zapnuto").grid(row=8, column=3)
+                       value=1, text="Zapnuto").grid(row=8, column=5, columnspan=3)
 
         tk.Label(settings, text="Spínač řízení").grid(row=9, column=1, sticky="e")
         tk.Radiobutton(settings, value=0, text="Vypnuto",
-                       variable=self.controler.comm_variables["CONTROL_SWITCH"]).grid(row=9, column=2)
+                       variable=self.controler.comm_variables["CONTROL_SWITCH"]).grid(row=9, column=2, columnspan=3)
         tk.Radiobutton(settings, value=1, text="Zapnuto",
-                       variable=self.controler.comm_variables["CONTROL_SWITCH"]).grid(row=9, column=3)
+                       variable=self.controler.comm_variables["CONTROL_SWITCH"]).grid(row=9, column=5, columnspan=3)
 
         tk.Label(settings, text="Rychlost [km/h]:").grid(row=30, column=1, sticky="e")
         spd_sbox = ttk.Spinbox(settings, from_=-325, to=325, increment=5,
                                state="readonly", textvariable=self.controler.comm_variables["SPEED"])
         spd_sbox.set(0)
-        spd_sbox.grid(row=30, column=2, columnspan=3, padx=5, sticky="w")
+        spd_sbox.grid(row=30, column=2, columnspan=6, padx=5, sticky="w")
 
         tk.Label(settings, text="Směrová páka:").grid(row=40, rowspan=2, column=1, sticky="e")
         tk.Radiobutton(settings, variable=self.controler.comm_variables["DIRECTION_LEAVER"],
-                       value=0, text="Z").grid(row=40, column=2)
+                       value=0, text="Z").grid(row=40, column=2, columnspan=2)
         tk.Radiobutton(settings, variable=self.controler.comm_variables["DIRECTION_LEAVER"],
-                       value=2, text="0").grid(row=40, column=3)
+                       value=2, text="0").grid(row=40, column=4, columnspan=2)
         tk.Radiobutton(settings, variable=self.controler.comm_variables["DIRECTION_LEAVER"],
-                       value=1, text="P").grid(row=40, column=4)
+                       value=1, text="P").grid(row=40, column=6, columnspan=2)
 
         tk.Label(settings, text="Průběžné potrubí [bar]:").grid(row=50, column=1, sticky="e")
         trline_sbox = ttk.Spinbox(settings, from_=0, to=Sim.MAX_TL_PRESS, increment=0.1, state="readonly",
                                   textvariable=self.controler.comm_variables["TRAIN_LINE_PRESSURE"])
         self.controler.comm_variables["TRAIN_LINE_PRESSURE"].set(5)
-        trline_sbox.grid(row=50, column=2, columnspan=3, padx=5, sticky="w")
+        trline_sbox.grid(row=50, column=2, columnspan=6, padx=5, sticky="w")
 
         tk.Label(settings, text="Přímočinná brzda [bar]:").grid(row=60, column=1, sticky="e")
-        cylpres_sbox = ttk.Spinbox(settings, from_=0, to=Sim.MAX_DIR_BR_APPL, increment=0.1, state="readonly",
+        cylpres_sbox = ttk.Spinbox(settings, from_=0, to=Sim.MAX_DIR_BR_APL, increment=0.1, state="readonly",
                                    textvariable=self.controler.comm_variables["BRAKE_CYLINDER_PRESSURE"])
         self.controler.comm_variables["BRAKE_CYLINDER_PRESSURE"].set(6)
-        cylpres_sbox.grid(row=60, column=2, columnspan=3, padx=5, sticky="w")
+        cylpres_sbox.grid(row=60, column=2, columnspan=6, padx=5, sticky="w")
 
         driving = tk.LabelFrame(self, text="Řízení")
         driving.grid(row=1, column=2, rowspan=2, sticky="nsew")
         SpeedGauge(driving, max_=140, variable=self.controler.comm_variables["SPEED"]).grid(row=1, column=2)
-        self.trax_gauge = TractiveEffortGauge(driving, target_variable=self.controler.sim_variables["TRACTION_TARGET"],
-                                              traction_variable=self.controler.sim_variables["TRACTION"])
+        self.trax_gauge = TractiveEffortGauge(
+            driving, target_variable=self.controler.sim_variables["TRACTION_TARGET"],
+            traction_variable=self.controler.sim_variables["TRACTION"],
+            relative_effort_variable=self.controler.sim_variables["RELATIVE_EFFORT"],
+            show_relative_effort_variable=self.controler.sim_variables["CONTROL_MODE"]
+        )
         self.trax_gauge.grid(row=1, column=3)
         f = tk.Frame(driving, relief="ridge", borderwidth=5)
         f.grid(row=2, column=2)
@@ -886,6 +933,19 @@ class MainPage(tk.Frame):
                      variable=self.controler.comm_variables["DIRECTION_LEAVER"],
                      size=100).grid(row=0, column=2)
         tk.Label(switches, text="Směr").grid(row=1, column=2)
+
+        RotarySwitch(switches,
+                     notches=[
+                         SwitchPosition(position=-90, label="N", value=0),
+                         SwitchPosition(position=0, label="MAN", value=1),
+                         SwitchPosition(position=45, label="ARR", value=2),
+                         SwitchPosition(position=90, label="CB", value=3)
+                     ],
+                     default=SwitchPosition(position=0, label="MAN", value=1),
+                     variable=self.controler.sim_variables["CONTROL_MODE"],
+                     block=(90, 270),
+                     size=100).grid(row=2, column=0)
+        tk.Label(switches, text="Režim řízení").grid(row=3, column=0)
 
         track = tk.LabelFrame(self, text="Trať")
         track.grid(row=2, column=1, sticky="nsew")
