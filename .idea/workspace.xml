@@ -4,6 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< Updated upstream
     <list default="true" id="538934d1-3604-41f1-9900-1a00c47bbc46" name="Default Changelist" comment="">
       <change afterPath="$PROJECT_DIR$/2021-10-26 ModularEntity Script.sql" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/balises_x21.sql" afterDir="false" />
@@ -23,6 +24,9 @@
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/trackmap.py" beforeDir="false" afterPath="$PROJECT_DIR$/trackmap.py" afterDir="false" />
     </list>
+=======
+    <list default="true" id="538934d1-3604-41f1-9900-1a00c47bbc46" name="Default Changelist" comment="" />
+>>>>>>> Stashed changes
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
