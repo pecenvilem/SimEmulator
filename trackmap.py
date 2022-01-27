@@ -2,7 +2,6 @@ import json
 import tkinter as tk
 import tkinter.messagebox as msb
 import mysql.connector
-import re
 from secrets import db_host, db_user, db_password, db_database
 from configuration import QUERY_FILE
 with open(QUERY_FILE, "rt") as f:
@@ -141,7 +140,9 @@ class TrackMap(tk.Frame):
                             "M_DUP": (def_tgmr & (3 << (i - 17))) >> (i - 17),  # 2 bits [16-17],
                             "M_MCOUNT": (def_tgmr & (255 << (i - 25))) >> (i - 25),  # 8 bits [18-25],
                             "NID_C": (def_tgmr & (1023 << (i - 35))) >> (i - 35),  # 10 bits [26-35],
-                            "NID_BG": (def_tgmr & (16383 << (i - 49))) >> (i - 49),  # 14 bits [36-49],
+                            # TODO: Remove artificial increment in NID_BG when DB data is corrected!
+                            # "NID_BG": ((def_tgmr & (16383 << (i - 49))) >> (i - 49)),  # 14 bits [36-49],
+                            "NID_BG": ((def_tgmr & (16383 << (i - 49))) >> (i - 49)) + 1,  # 14 bits [36-49],
                             "Q_LINK": (def_tgmr & (1 << (i - 50))) >> (i - 50),  # 1 bit [50],
                             "End of Information": {
                                 "NID_PACKET": 255  # 8 more bits [51-58]
@@ -214,10 +215,11 @@ class TrackMap(tk.Frame):
 
     def shift(self, distance):
         for balise in self.balises:
-            if balise["position"] * (balise["position"] - distance) <= 0 and balise["position"] != 0:                self.telegrams_pending.append(balise["telegram"])
+            if balise["position"] * (balise["position"] - distance) <= 0 and balise["position"] != 0:
+                self.telegrams_pending.append(balise["telegram"])
             balise["position"] -= distance
         if not self.telegram_in_transit and self.telegrams_pending:
-            self.telegram_in_transit
+            self.telegram_in_transit = True
             self.variable.set(self.telegrams_pending.pop(0))
         if distance != 0:
             self.refresh()
