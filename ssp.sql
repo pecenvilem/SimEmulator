@@ -65,17 +65,19 @@ SELECT
     cte.element,
     cte.length,
     point.intrinsicReference, point.deltaPosition,
-    netentity.id ent_id
+    speedsection.maxSpeed
 FROM
     cte
         LEFT OUTER JOIN
     `associatedpoint` point ON cte.element = point.id_PositioningNetElement
         LEFT OUTER JOIN
-    `locationfeatureassignment` l_f ON point.id = l_f.id_AssociatedFeature
+    `associatedsegment` segment ON segment.id_AssociatedPoint_A = point.id OR segment.id_AssociatedPoint_B = point.id
+        LEFT OUTER JOIN
+    `locationfeatureassignment` l_f ON segment.id = l_f.id_AssociatedFeature
         LEFT OUTER JOIN
     `locatednetentity` ON l_f.id_FunctionalLocation = `locatednetentity`.id_EntityLocation_Primary
         LEFT OUTER JOIN
-    `netentity` ON `netentity`.id = `locatednetentity`.id
+    `speedsection` ON `speedsection`.id = `locatednetentity`.id
 WHERE
-    `netentity`.id IS NOT NULL
+    `speedsection`.id IS NOT NULL
 ;

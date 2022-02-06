@@ -65,30 +65,21 @@ SELECT
     cte.element,
     cte.length,
     point.intrinsicReference, point.deltaPosition,
-    balise.id,
-    balise.positionInGroup, IF(balise.duplicate='no', 0, IF(balise.duplicate='yes', 1, NULL)) AS "duplicate",
-    bg_names.name,
-    balise.defaultTelegram
+    verticalcurve.horizontalLength,
+    verticalcurve.elevation0,
+    verticalcurve.deltaElevation
 FROM
     cte
-        INNER JOIN
-    `namedresource` elem_name ON elem_name.id = cte.element
         LEFT OUTER JOIN
     `associatedpoint` point ON cte.element = point.id_PositioningNetElement
         LEFT OUTER JOIN
-    `locationfeatureassignment` l_f ON point.id = l_f.id_AssociatedFeature
+    `associatedsegment` segment ON segment.id_AssociatedPoint_A = point.id OR segment.id_AssociatedPoint_B = point.id
+        LEFT OUTER JOIN
+    `locationfeatureassignment` l_f ON segment.id = l_f.id_AssociatedFeature
         LEFT OUTER JOIN
     `locatednetentity` ON l_f.id_FunctionalLocation = `locatednetentity`.id_EntityLocation_Primary
         LEFT OUTER JOIN
-    `balise` ON `balise`.id = `locatednetentity`.id
-        LEFT OUTER JOIN
-    `namedresource` AS b_names ON b_names.id = balise.id
-        LEFT OUTER JOIN
-    `balisegroup` ON balise.id_BaliseGroup = balisegroup.id
-        LEFT OUTER JOIN
-    `namedresource` bg_names ON bg_names.id = balisegroup.id
+    `verticalcurve` ON `verticalcurve`.id = `locatednetentity`.id
 WHERE
-    `balise`.id IS NOT NULL
-        OR
-    point.id IS NULL
+    `verticalcurve`.id IS NOT NULL
 ;

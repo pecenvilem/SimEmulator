@@ -35,27 +35,41 @@ DATABASE_AUTOCONNECT = True
 # if the connection should be performed, 'BALISES' must be set to []
 
 BALISES = []
-# BALISES = [
-#     {'position': 2997.4, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 2, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 7497.4, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 5, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 2999.9, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 2, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 7499.9, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 5, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 4497.4, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 3, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 5999.9, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 4, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 4499.9, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 3, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 8999.9, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 6, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 8997.4, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 6, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 1499.9, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 1, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 1497.4, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 1, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 5997.4, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 4, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': -0.100, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 0, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': -2.600, 'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 0, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'}
-# ]
+BALISES = [
+    {'position': 400.0,
+     'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 1, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 402.5,
+     'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 1, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 1900.0,
+     'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 2, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 1902.5,
+     'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 2, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 3400.0,
+     'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 3, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 3402.5,
+     'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 3, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 4900.0,
+     'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 4, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 4902.5,
+     'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 4, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 6400.0,
+     'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 5, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 6402.5,
+     'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 5, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 7900.0,
+     'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 6, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 7902.5,
+     'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 6, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 9402.5,
+     'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 7, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+    {'position': 9400.0,
+     'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 7, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
+]
 
-# netElement id that the SQL query for fetching balise data is based upon
+# netElement id that the SQL balise_query for fetching balise data is based upon
 STARTING_NET_ELEMENT = "9f5aea90-d268-466e-8b9c-032c4183a8d3"
 
-# SQL query definition
+# SQL balise_query definition
 QUERY_FILE = "balises.sql"
 # QUERY_FILE = "balises_x21.sql"
 
