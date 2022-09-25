@@ -47,8 +47,8 @@ class Sim:
     """Slouží k fyzikální simulaci pohybu vlaku"""
 
     # MASS = 200  # t # TODO: PARAM
-    # ACCELERATION = 0.9  # m/s/s # TODO: PARAM
-    # BRAKING_FORCE = MASS * ACCELERATION  # kN # TODO: PARAM
+    # FULL_TRAIN_BRAKE_ACCELERATION = 0.9  # m/s/s # TODO: PARAM
+    # BRAKING_FORCE = MASS * FULL_TRAIN_BRAKE_ACCELERATION  # kN # TODO: PARAM
     # FILLING_TIME = 7  # s # TODO: PARAM
     # VENTING_TIME = 16  # s # TODO: PARAM
     # POWER = 6400  # kW # TODO: PARAM
@@ -72,7 +72,7 @@ class Sim:
 
     from configuration import MASS
     # noinspection PyUnresolvedReferences
-    from configuration import ACCELERATION
+    from configuration import FULL_TRAIN_BRAKE_ACCELERATION
     from configuration import BRAKING_FORCE
     from configuration import FILLING_TIME
     from configuration import VENTING_TIME
@@ -465,7 +465,7 @@ class DummyComm(Comm):
         self.comm_config = config_data
 
     def send(self, msg_type, **kwargs):
-        """Odešle CAN zprávu převodníku po seriovém portu."""
+        """Odešle CAN zprávu převodníku po sériovém portu."""
         data = kwargs.get("data", [])
         rtr = kwargs.get("rtr", False)
         msg_format = self.comm_config[msg_type]
@@ -741,7 +741,7 @@ class Emulator(tk.Tk):
             "TRACTION_TARGET": tk.DoubleVar(value=0),
             "TRACTION": tk.DoubleVar(value=0),
             "TRAIN_MASS": tk.StringVar(),
-            "ACCELERATION": tk.StringVar(),
+            "FULL_TRAIN_BRAKE_ACCELERATION": tk.StringVar(),
             "TRAIN_BRAKING_FORCE": tk.StringVar(),
             "CYLINDER_FILL_TIME": tk.StringVar(),
             "CYLINDER_VENT_TIME": tk.StringVar(),
@@ -842,19 +842,19 @@ class MainPage(tk.Frame):
 
     def stop(self):
         """Zastavení komunikace a návrat na stránku pro připojení k simulátoru"""
-        self.controler.comm.stop()
-        self.controler.cp.tkraise()
+        self.controller.comm.stop()
+        self.controller.cp.tkraise()
 
     def compute_train_brake(self):
         """Výpočet maximální brzdné síly průběžné brzdy podle zadaného maximálního brzdného zrychlení."""
-        mass = float(self.controler.sim_variables["TRAIN_MASS"].get())
-        acceleration = float(self.controler.sim_variables["ACCELERATION"].get())
-        self.controler.sim_variables["TRAIN_BRAKING_FORCE"].set(str(int(mass * acceleration)))
+        mass = float(self.controller.sim_variables["TRAIN_MASS"].get())
+        acceleration = float(self.controller.sim_variables["FULL_TRAIN_BRAKE_ACCELERATION"].get())
+        self.controller.sim_variables["TRAIN_BRAKING_FORCE"].set(str(int(mass * acceleration)))
 
     def __init__(self, parent, controller):
         """Inicializace a definice prvků UI"""
         tk.Frame.__init__(self, parent)
-        self.controler = controller
+        self.controller = controller
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(10, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -868,68 +868,68 @@ class MainPage(tk.Frame):
         settings.grid(row=1, column=1, sticky="nsew")
 
         tk.Label(settings, text="Lokomotivní baterie").grid(row=8, column=1, sticky="e")
-        tk.Radiobutton(settings, variable=self.controler.comm_variables["BATTERY"],
+        tk.Radiobutton(settings, variable=self.controller.comm_variables["BATTERY"],
                        value=0, text="Vypnuto").grid(row=8, column=2, columnspan=3)
-        tk.Radiobutton(settings, variable=self.controler.comm_variables["BATTERY"],
+        tk.Radiobutton(settings, variable=self.controller.comm_variables["BATTERY"],
                        value=1, text="Zapnuto").grid(row=8, column=5, columnspan=3)
 
         tk.Label(settings, text="Spínač řízení").grid(row=9, column=1, sticky="e")
         tk.Radiobutton(settings, value=0, text="Vypnuto",
-                       variable=self.controler.comm_variables["CONTROL_SWITCH"]).grid(row=9, column=2, columnspan=3)
+                       variable=self.controller.comm_variables["CONTROL_SWITCH"]).grid(row=9, column=2, columnspan=3)
         tk.Radiobutton(settings, value=1, text="Zapnuto",
-                       variable=self.controler.comm_variables["CONTROL_SWITCH"]).grid(row=9, column=5, columnspan=3)
+                       variable=self.controller.comm_variables["CONTROL_SWITCH"]).grid(row=9, column=5, columnspan=3)
 
         tk.Label(settings, text="Rychlost [km/h]:").grid(row=30, column=1, sticky="e")
-        spd_sbox = ttk.Spinbox(settings, from_=-325, to=325, increment=5,
-                               state="readonly", textvariable=self.controler.comm_variables["SPEED"])
-        spd_sbox.set(0)
-        spd_sbox.grid(row=30, column=2, columnspan=6, padx=5, sticky="w")
+        spd_spin_box = ttk.Spinbox(settings, from_=-325, to=325, increment=5,
+                                   state="readonly", textvariable=self.controller.comm_variables["SPEED"])
+        spd_spin_box.set(0)
+        spd_spin_box.grid(row=30, column=2, columnspan=6, padx=5, sticky="w")
 
         tk.Label(settings, text="Směrová páka:").grid(row=40, rowspan=2, column=1, sticky="e")
-        tk.Radiobutton(settings, variable=self.controler.comm_variables["DIRECTION_LEAVER"],
+        tk.Radiobutton(settings, variable=self.controller.comm_variables["DIRECTION_LEAVER"],
                        value=0, text="Z").grid(row=40, column=2, columnspan=2)
-        tk.Radiobutton(settings, variable=self.controler.comm_variables["DIRECTION_LEAVER"],
+        tk.Radiobutton(settings, variable=self.controller.comm_variables["DIRECTION_LEAVER"],
                        value=2, text="0").grid(row=40, column=4, columnspan=2)
-        tk.Radiobutton(settings, variable=self.controler.comm_variables["DIRECTION_LEAVER"],
+        tk.Radiobutton(settings, variable=self.controller.comm_variables["DIRECTION_LEAVER"],
                        value=1, text="P").grid(row=40, column=6, columnspan=2)
 
         tk.Label(settings, text="Průběžné potrubí [bar]:").grid(row=50, column=1, sticky="e")
-        trline_sbox = ttk.Spinbox(settings, from_=0, to=Sim.MAX_TL_PRESS, increment=0.1, state="readonly",
-                                  textvariable=self.controler.comm_variables["TRAIN_LINE_PRESSURE"])
-        self.controler.comm_variables["TRAIN_LINE_PRESSURE"].set(5)
-        trline_sbox.grid(row=50, column=2, columnspan=6, padx=5, sticky="w")
+        tr_line_spin_box = ttk.Spinbox(settings, from_=0, to=Sim.MAX_TL_PRESS, increment=0.1, state="readonly",
+                                       textvariable=self.controller.comm_variables["TRAIN_LINE_PRESSURE"])
+        self.controller.comm_variables["TRAIN_LINE_PRESSURE"].set(5)
+        tr_line_spin_box.grid(row=50, column=2, columnspan=6, padx=5, sticky="w")
 
-        tk.Label(settings, text="Přímočinná brzda [bar]:").grid(row=60, column=1, sticky="e")
-        cylpres_sbox = ttk.Spinbox(settings, from_=0, to=Sim.MAX_DIR_BR_APL, increment=0.1, state="readonly",
-                                   textvariable=self.controler.comm_variables["BRAKE_CYLINDER_PRESSURE"])
-        self.controler.comm_variables["BRAKE_CYLINDER_PRESSURE"].set(6)
-        cylpres_sbox.grid(row=60, column=2, columnspan=6, padx=5, sticky="w")
+        tk.Label(settings, text="Přímo-činná brzda [bar]:").grid(row=60, column=1, sticky="e")
+        cylinder_pres_spin_box = ttk.Spinbox(settings, from_=0, to=Sim.MAX_DIR_BR_APL, increment=0.1, state="readonly",
+                                             textvariable=self.controller.comm_variables["BRAKE_CYLINDER_PRESSURE"])
+        self.controller.comm_variables["BRAKE_CYLINDER_PRESSURE"].set(6)
+        cylinder_pres_spin_box.grid(row=60, column=2, columnspan=6, padx=5, sticky="w")
 
         driving = tk.LabelFrame(self, text="Řízení")
         driving.grid(row=1, column=2, rowspan=2, sticky="nsew")
-        SpeedGauge(driving, max_=140, variable=self.controler.comm_variables["SPEED"]).grid(row=1, column=2)
+        SpeedGauge(driving, max_=140, variable=self.controller.comm_variables["SPEED"]).grid(row=1, column=2)
         self.trax_gauge = TractiveEffortGauge(
-            driving, target_variable=self.controler.sim_variables["TRACTION_TARGET"],
-            traction_variable=self.controler.sim_variables["TRACTION"],
-            relative_effort_variable=self.controler.sim_variables["RELATIVE_EFFORT"],
-            show_relative_effort_variable=self.controler.sim_variables["CONTROL_MODE"]
+            driving, target_variable=self.controller.sim_variables["TRACTION_TARGET"],
+            traction_variable=self.controller.sim_variables["TRACTION"],
+            relative_effort_variable=self.controller.sim_variables["RELATIVE_EFFORT"],
+            show_relative_effort_variable=self.controller.sim_variables["CONTROL_MODE"]
         )
         self.trax_gauge.grid(row=1, column=3)
         f = tk.Frame(driving, relief="ridge", borderwidth=5)
         f.grid(row=2, column=2)
         train_line_gauge = PressureGauge(f, primary="red",
-                                         primary_variable=self.controler.comm_variables["TRAIN_LINE_PRESSURE"])
+                                         primary_variable=self.controller.comm_variables["TRAIN_LINE_PRESSURE"])
         train_line_gauge.create_mark(5.0, color="primary")
         train_line_gauge.grid(row=0, column=0)
         tk.Label(f, text="Hlavní potrubí").grid(row=1, column=0)
         f = tk.Frame(driving, relief="ridge", borderwidth=5)
         f.grid(row=2, column=3)
         cylinder_gauge = PressureGauge(f, primary="red", max_=8,
-                                       primary_variable=self.controler.comm_variables["BRAKE_CYLINDER_PRESSURE"])
+                                       primary_variable=self.controller.comm_variables["BRAKE_CYLINDER_PRESSURE"])
         cylinder_gauge.create_mark(6.5, color="primary")
         cylinder_gauge.grid(row=0, column=0)
         tk.Label(f, text="Brzdový válec").grid(row=1, column=0)
-        ctr_lvr = ControlLeaver(driving, variable=self.controler.comm_variables["DRIVING_LEAVER"], img_path=HJP)
+        ctr_lvr = ControlLeaver(driving, variable=self.controller.comm_variables["DRIVING_LEAVER"], img_path=HJP)
         ctr_lvr.grid(row=1, column=1)
         switches = tk.Frame(driving)
         switches.grid(row=2, column=1, ipadx=5, ipady=5)
@@ -938,7 +938,7 @@ class MainPage(tk.Frame):
                          SwitchPosition(position=0, label="0", value=0),
                          SwitchPosition(position=90, label="1", value=1)],
                      default=SwitchPosition(position=0, label="0", value=0),
-                     block=(90, 360), variable=self.controler.comm_variables["BATTERY"],
+                     block=(90, 360), variable=self.controller.comm_variables["BATTERY"],
                      size=100).grid(row=0, column=0)
         tk.Label(switches, text="Baterie").grid(row=1, column=0)
 
@@ -947,7 +947,7 @@ class MainPage(tk.Frame):
                          SwitchPosition(position=0, label="0", value=0),
                          SwitchPosition(position=45, label="1", value=1)],
                      default=SwitchPosition(position=0, label="0", value=0),
-                     block=(45, 360), variable=self.controler.comm_variables["CONTROL_SWITCH"],
+                     block=(45, 360), variable=self.controller.comm_variables["CONTROL_SWITCH"],
                      size=100).grid(row=0, column=1)
         tk.Label(switches, text="Řízení").grid(row=1, column=1)
 
@@ -957,7 +957,7 @@ class MainPage(tk.Frame):
                          SwitchPosition(position=0, label="0", value=2),
                          SwitchPosition(position=1, label="P", value=1)],
                      default=SwitchPosition(position=0, label="0", value=0),
-                     variable=self.controler.comm_variables["DIRECTION_LEAVER"],
+                     variable=self.controller.comm_variables["DIRECTION_LEAVER"],
                      size=100).grid(row=0, column=2)
         tk.Label(switches, text="Směr").grid(row=1, column=2)
 
@@ -969,64 +969,66 @@ class MainPage(tk.Frame):
                          SwitchPosition(position=90, label="CB", value=3)
                      ],
                      default=SwitchPosition(position=0, label="MAN", value=1),
-                     variable=self.controler.sim_variables["CONTROL_MODE"],
+                     variable=self.controller.sim_variables["CONTROL_MODE"],
                      block=(90, 270),
                      size=100).grid(row=2, column=0)
         tk.Label(switches, text="Režim řízení").grid(row=3, column=0)
 
         track = tk.LabelFrame(self, text="Trať")
         track.grid(row=2, column=1, sticky="nsew")
-        self.track = TrackMap(track, variable=self.controler.comm_variables["BALISE_TELEGRAM"])
+        self.track = TrackMap(track, variable=self.controller.comm_variables["BALISE_TELEGRAM"])
         self.track.grid()
 
         sim = tk.LabelFrame(self, text="Simulace")
         sim.grid_columnconfigure(0, weight=1)
         sim.grid_columnconfigure(30, weight=1)
         sim.grid(row=3, column=1, columnspan=3)
-        tk.Button(sim, text="Načíst", command=self.controler.sim.start).grid(row=0, column=1, rowspan=2, sticky="e")
+        tk.Button(sim, text="Načíst", command=self.controller.sim.start).grid(row=0, column=1, rowspan=2, sticky="e")
         self.pause_lbl = tk.Label(sim, text="", fg="red", width=13)
         self.pause_lbl.grid(row=1, column=2, sticky="w")
         tk.Label(sim, text="Hmotnost vlaku: [t]").grid(row=0, column=3, sticky="e")
-        e = tk.Entry(sim, width=6, textvariable=self.controler.sim_variables["TRAIN_MASS"])
-        self.controler.sim_variables["TRAIN_MASS"].set(str(self.controler.sim.MASS))
+        e = tk.Entry(sim, width=6, textvariable=self.controller.sim_variables["TRAIN_MASS"])
+        self.controller.sim_variables["TRAIN_MASS"].set(str(self.controller.sim.MASS))
         e.grid(row=0, column=4, sticky="w")
         tk.Label(sim, text=u"Brzdné zrychlení: [m/s\u207b\u00b2]").grid(row=1, column=3, sticky="e")
-        e = tk.Entry(sim, width=6, textvariable=self.controler.sim_variables["ACCELERATION"])
-        self.controler.sim_variables["ACCELERATION"].set(str(self.controler.sim.ACCELERATION))
+        e = tk.Entry(sim, width=6, textvariable=self.controller.sim_variables["FULL_TRAIN_BRAKE_ACCELERATION"])
+        self.controller.sim_variables["FULL_TRAIN_BRAKE_ACCELERATION"].set(
+            str(self.controller.sim.FULL_TRAIN_BRAKE_ACCELERATION)
+        )
         e.grid(row=1, column=4, sticky="w")
         tk.Label(sim, text="Brzdná síla soupravy: [kN]").grid(row=0, column=5, sticky="e")
-        e = tk.Entry(sim, width=5, textvariable=self.controler.sim_variables["TRAIN_BRAKING_FORCE"])
-        self.controler.sim_variables["TRAIN_BRAKING_FORCE"].set(str(self.controler.sim.BRAKING_FORCE))
+        e = tk.Entry(sim, width=5, textvariable=self.controller.sim_variables["TRAIN_BRAKING_FORCE"])
+        self.controller.sim_variables["TRAIN_BRAKING_FORCE"].set(str(self.controller.sim.BRAKING_FORCE))
         e.grid(row=0, column=6, sticky="w")
         b = tk.Button(sim, text="Dopočítat ze zrychlení", command=self.compute_train_brake)
         b.grid(row=1, column=5, columnspan=2, sticky="e")
         tk.Label(sim, text="Doba plnění válce: [s]").grid(row=0, column=7, sticky="e")
-        e = tk.Entry(sim, width=5, textvariable=self.controler.sim_variables["CYLINDER_FILL_TIME"])
-        self.controler.sim_variables["CYLINDER_FILL_TIME"].set(str(self.controler.sim.FILLING_TIME))
+        e = tk.Entry(sim, width=5, textvariable=self.controller.sim_variables["CYLINDER_FILL_TIME"])
+        self.controller.sim_variables["CYLINDER_FILL_TIME"].set(str(self.controller.sim.FILLING_TIME))
         e.grid(row=0, column=8, sticky="w")
         tk.Label(sim, text="Doba vyprázdnění válce: [s]").grid(row=1, column=7, sticky="e")
-        e = tk.Entry(sim, width=5, textvariable=self.controler.sim_variables["CYLINDER_VENT_TIME"])
-        self.controler.sim_variables["CYLINDER_VENT_TIME"].set(str(self.controler.sim.VENTING_TIME))
+        e = tk.Entry(sim, width=5, textvariable=self.controller.sim_variables["CYLINDER_VENT_TIME"])
+        self.controller.sim_variables["CYLINDER_VENT_TIME"].set(str(self.controller.sim.VENTING_TIME))
         e.grid(row=1, column=8, sticky="w")
         tk.Label(sim, text="Maximální výkon [kW]").grid(row=0, column=9, sticky="e")
-        tk.Entry(sim, width=5, textvariable=self.controler.sim_variables["POWER"]).grid(row=0, column=10, sticky="w")
-        self.controler.sim_variables["POWER"].set(str(self.controler.sim.POWER))
+        tk.Entry(sim, width=5, textvariable=self.controller.sim_variables["POWER"]).grid(row=0, column=10, sticky="w")
+        self.controller.sim_variables["POWER"].set(str(self.controller.sim.POWER))
         tk.Label(sim, text=u"Sklon trati [\u2030]").grid(row=1, column=9, sticky="e")
-        tk.Entry(sim, width=5, textvariable=self.controler.sim_variables["SLOPE"]).grid(row=1, column=10, sticky="w")
-        self.controler.sim_variables["SLOPE"].set(str(self.controler.sim.SLOPE))
+        tk.Entry(sim, width=5, textvariable=self.controller.sim_variables["SLOPE"]).grid(row=1, column=10, sticky="w")
+        self.controller.sim_variables["SLOPE"].set(str(self.controller.sim.SLOPE))
         tk.Label(sim, text="Součinitel využití adheze [-]").grid(row=0, column=11, sticky="e")
-        e = tk.Entry(sim, width=5, textvariable=self.controler.sim_variables["ADHESION_UTILISATION"])
-        self.controler.sim_variables["ADHESION_UTILISATION"].set(str(self.controler.sim.ADHESION_UTILISATION))
+        e = tk.Entry(sim, width=5, textvariable=self.controller.sim_variables["ADHESION_UTILISATION"])
+        self.controller.sim_variables["ADHESION_UTILISATION"].set(str(self.controller.sim.ADHESION_UTILISATION))
         e.grid(row=0, column=12, sticky="w")
         tk.Label(sim, text="Rovnice vozidlového odporu").grid(row=0, column=13, columnspan=6)
-        tk.Entry(sim, width=5, textvariable=self.controler.sim_variables["C"]).grid(row=1, column=13, sticky="e")
-        self.controler.sim_variables["C"].set(str(self.controler.sim.C))
+        tk.Entry(sim, width=5, textvariable=self.controller.sim_variables["C"]).grid(row=1, column=13, sticky="e")
+        self.controller.sim_variables["C"].set(str(self.controller.sim.C))
         tk.Label(sim, text="+").grid(row=1, column=14)
-        tk.Entry(sim, width=8, textvariable=self.controler.sim_variables["B"]).grid(row=1, column=15)
-        self.controler.sim_variables["B"].set(str(self.controler.sim.B))
+        tk.Entry(sim, width=8, textvariable=self.controller.sim_variables["B"]).grid(row=1, column=15)
+        self.controller.sim_variables["B"].set(str(self.controller.sim.B))
         tk.Label(sim, text=u"\u00b7V+").grid(row=1, column=16)
-        tk.Entry(sim, width=8, textvariable=self.controler.sim_variables["A"]).grid(row=1, column=17)
-        self.controler.sim_variables["A"].set(str(self.controler.sim.A))
+        tk.Entry(sim, width=8, textvariable=self.controller.sim_variables["A"]).grid(row=1, column=17)
+        self.controller.sim_variables["A"].set(str(self.controller.sim.A))
         tk.Label(sim, text=u"\u00b7V\u00b2").grid(row=1, column=18, sticky="w")
 
 
@@ -1043,7 +1045,7 @@ class ConnectPage(tk.Frame):
         self.grid_columnconfigure(10, weight=1)
 
         from configuration import MQTT_LOOP_FREQUENCY
-        self.comms = [
+        self.communications = [
             ("MQTT", MqttComm(self.controller, loop_frq=MQTT_LOOP_FREQUENCY), None),
             ("Test", DummyComm(self.controller), None)
         ]
@@ -1053,16 +1055,16 @@ class ConnectPage(tk.Frame):
         self.ntb.grid(row=2, column=1)
         tk.Button(self, text="Připojit", command=self.connect).grid(row=3, column=1)
 
-        for index, data in enumerate(self.comms):
+        for index, data in enumerate(self.communications):
             text, comm, pane = data
             pane = comm.get_tkinter_pane(self.ntb)
             pane.grid()
-            self.ntb.add(pane, text=text, pad=5)
-            self.comms[index] = (text, comm, pane)
+            self.ntb.add(pane, text=text, padding=5)
+            self.communications[index] = (text, comm, pane)
 
     def connect(self):
         """Otevře hlavní okno aplikace a připojí se k CAN převodníku."""
-        _, comm, pane = self.comms[self.ntb.index("current")]
+        _, comm, pane = self.communications[self.ntb.index("current")]
         if pane.connect():
             self.controller.connect(comm)
             self.controller.sim.start()

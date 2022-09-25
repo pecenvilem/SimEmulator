@@ -100,10 +100,10 @@ MAX_TL_PRESS = 5  # bar
 MASS = 200  # t
 
 # default DECELERATION when full train brake is applied (excluding loco brakes)
-ACCELERATION = 0.9  # m/s/s
+FULL_TRAIN_BRAKE_ACCELERATION = 0.9  # m/s/s
 
 # actual max brake force calculated from required deceleration at full train brake application
-BRAKING_FORCE = MASS * ACCELERATION  # kN
+BRAKING_FORCE = MASS * FULL_TRAIN_BRAKE_ACCELERATION  # kN
 
 # time needed to fill train brake cylinders from 0 to MAX_TR_BR_APL
 FILLING_TIME = 7  # s
