@@ -30,8 +30,7 @@ class MQTTClient:
         while self.__run:
             data = {
                 "service_brake": self.service_var.get(),
-                "emergency_brake": self.emergency_var.get(),
-                # "service_brake": self.service_var.get()
+                "emergency_brake": self.emergency_var.get()
             }
             self.client.publish("evc/tiu", payload=json.dumps(data))
             time.sleep(self._interval)

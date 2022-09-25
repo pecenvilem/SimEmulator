@@ -50,6 +50,7 @@ class TrackMap(tk.Frame):
             else:
                 x2 = self.width * 0.25
                 self.canvas.create_text(x2 + 5, y2, text=f"{next(labels_main)} m", anchor="w")
+            # noinspection PyArgumentList
             self.canvas.create_line(x1, y1, x2, y2, tag="mark")
         labels_detail = iter([5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5])
         for i in range(1, 12):  # 1 through 11
@@ -60,6 +61,7 @@ class TrackMap(tk.Frame):
             else:
                 x2 = self.width * 0.7
             self.canvas.create_text(x2 + 5, y2, text=f"{next(labels_detail)} m", anchor="w")
+            # noinspection PyArgumentList
             self.canvas.create_line(x1, y1, x2, y2, tag="mark")
         self.balises = []
         self.telegrams_pending = []
@@ -70,6 +72,7 @@ class TrackMap(tk.Frame):
 
     def load_data(self):
         tl = tk.Toplevel(self)
+        # noinspection PyTypeChecker
         tl.transient(self)
         tl.focus_set()
 
@@ -225,11 +228,13 @@ class TrackMap(tk.Frame):
             position = self.track_to_canvas_main(balise["position"])
             x1, y1 = 0.100 * self.width, position - self.width * 0.0125
             x2, y2 = 0.125 * self.width, position + self.width * 0.0125
+            # noinspection PyArgumentList
             self.canvas.create_oval(x1, y1, x2, y2, fill="magenta", tag=("balise", "item"))
         if -5 <= balise["position"] <= 5:
             position = self.track_to_canvas_detail(balise["position"])
             x1, y1 = 0.650 * self.width, position - self.width * 0.0125
             x2, y2 = 0.675 * self.width, position + self.width * 0.0125
+            # noinspection PyArgumentList
             self.canvas.create_oval(x1, y1, x2, y2, fill="magenta", tag=("balise", "item"))
 
     def refresh(self):
