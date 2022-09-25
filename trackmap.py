@@ -211,7 +211,7 @@ class TrackMap(tk.Frame):
             return ((self.height * 9 / 12) / 2250) * (1000 - value) + (self.height * 3 / 12)
 
     def track_to_canvas_detail(self, value):
-        return self.height / 2 - value / 5 * self.height / 2
+        return self.height / 2 * (1 - value / 5)
 
     def shift(self, distance):
         for balise in self.balises:
