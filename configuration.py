@@ -2,7 +2,8 @@
 # MQTT ###########################################
 ##################################################
 
-# connection details are stored in secrets.py file
+# connection credentials
+MQTT_CREDENTIALS_FILE = ".\\secrets\\mqtt\\local.json"
 
 # number of communication loop run per second - internal delay after each loop is set accordingly
 MQTT_LOOP_FREQUENCY = 1000
@@ -25,7 +26,8 @@ BTM_INTERVAL = 0
 # DATABASE CONNECTION ############################
 ##################################################
 
-# connection details are stored in secrets.py file
+# database credentials
+DATABASE_CREDENTIALS_FILE = ".\\secrets\\database\\local_mysqlwb_2022-04-01.json"
 
 # connect automatically after startup without prompting the user
 DATABASE_AUTOCONNECT = True
