@@ -69,11 +69,13 @@ BALISES = []
 # ]
 
 # netElement id that the SQL balise_query for fetching balise data is based upon
-STARTING_NET_ELEMENT = "9f5aea90-d268-466e-8b9c-032c4183a8d3"
+# STARTING_NET_ELEMENT = "9f5aea90-d268-466e-8b9c-032c4183a8d3"
+STARTING_NET_ELEMENT = "910d1e73-4df6-4b15-9745-8c77e564c67a"
 
 # SQL balise_query definition
-QUERY_FILE = "balises.sql"
-# QUERY_FILE = "balises_x21.sql"
+QUERY_FILE = "db/2022-04-01/utils/balises_2022-04-01.sql"
+# QUERY_FILE = "db/2021-08-23/utils/balises.sql"
+# QUERY_FILE = "db/2021-10-26/utils/balises_x21.sql"
 
 # after loading balise positions, shift all positions by 'STARTING_OFFSET' towards the locomotive
 # TODO: set in accordance with data used by EVC
