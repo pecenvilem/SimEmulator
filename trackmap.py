@@ -4,9 +4,6 @@ import tkinter.messagebox as msb
 import mysql.connector
 from configuration import DATABASE_CREDENTIALS_FILE
 from configuration import QUERY_FILE
-with open(QUERY_FILE, "rt") as f:
-    query = f.read()
-# TODO: PARAM
 from configuration import STARTING_NET_ELEMENT
 
 
