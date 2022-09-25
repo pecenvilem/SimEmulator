@@ -1,0 +1,46 @@
+Zmìny oproti verzi 2021-01-20:
+
+
+Blok Network:
+
+U tøídy LevelNetwork pøidán atribut dimension, nabıvající hodnot "0", "1", "2", "3".
+Atribut representation novì nabıvá hodnot "schematic" nebo "realistic".
+
+
+Blok Topology:
+
+U tøídy OrderedCollectionElement (obashující atribut sequence jako souèást primárního klíèe) jedna relace zmìnìna na asociaci. Novì vzniklı primární klíè tak nahrazuje pùvodní unikátní klíè.
+
+
+Blok Positioning System:
+
+U tøíd GeoPointLinearCoordinate a GeoPointGeoCoordinate zrušen atribut sequence (GeoPoint má v daném souøadnicovém systému vdy právì jeden vektor souøadnic).
+Tøída EntityLocationOrientation nahrazena tøídou EntityOrientation s napojením na NetEntity. Natoèení v horizontálním a vertikálním smìru vajadøují atributy deltaHorizontalRotation a deltaVerticalRotation.
+
+
+Blok Location:
+
+Tøída EntityLocation je novì specializací tøídy NetworkResource (monost pøiøadit instance síti a úrovni, pojmenovat s vyuitím name a longname).
+Její atributy novì pojmenované functionalLocationReference a physicalLocationReference pøestìhovány do tøídy AssociatedLocationEntity.
+Novì zaveden atribut numberOfFeatures, kterı vyjadøuje, z kolika prvkù se lokace skládá (snadnìjší rozlišení ne stále prohledávat všechny instance *LocationFeature.
+
+Z tøídy AssociatedLocation pøesunuta vìtšina atributù do tøídy AssociatedLocationEntity.
+
+Tøída EntityLocationAssignment (pùvodnì v BlokuNetEnity) nahrazena dvìma specializovanımi tøídami AssociatedLocationEntity a GeoLocationEntity, které zajišují pøiøazení síové entity buï pøímo tøídì AssociatedLocation nebo GeoLocation.
+Tomu byly pøizpùsobeny i atributy (u tøídy AssociatedLocationEntity vìtšinou pøevzaté z AssociatedLocation nebo Location, u tøídy GeoLocationEntity nové).
+
+
+U tøídy GeoLocationFeature byl odstranìn atribut keepsOrientation (jeliko je orientace v prostoru vázána pøímo na tøídu EntityLocation, neuplatní se).
+U tøídy AssociatedLocationFeature pøejmenován na featureOrientation (novì bude nabıvat hodnot 1 nebo -1).
+
+Zrušena tøída FeatureFeatureAssignment a nahrazena specializovanìjšími tøídami AssociatedPositionAssignment a GeoPointAssociatedPosition.
+U propojovacích tabulek, které obsahují atribut seqence (jako souèást primárního klíèe) jedna z relací zmìnìna na asociaci (AssociatedLocationFeature, GeoLocationFeature a GeoPolygonalChainGeoPoint).
+
+
+Blok NetEntity:
+
+Novì obsahuje jedinou tøídu NetEntity. Tøída EntityLocationAssignment nahrazena dvìma specializovanımi tøídami pøesunutımi do bloku Location.
+
+
+
+

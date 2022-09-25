@@ -1,5 +1,8 @@
 import mysql.connector
-from secrets import dump_host, dump_user, dump_password, dump_database
+from trackmap import load_credentials
+
+CREDENTIALS_FILE = ".\\..\\..\\secrets\\database\\local_2022-04-01.json"
+credentials = load_credentials(CREDENTIALS_FILE)
 
 
 def custom_repr(obj):
@@ -9,19 +12,16 @@ def custom_repr(obj):
 
 
 connection = mysql.connector.connect(
-    host=dump_host,
-    user=dump_user,
-    password=dump_password,
-    database=dump_database
+    host=credentials["host"],
+    user=credentials["user"],
+    password=credentials["password"],
+    database=credentials["database"]
 )
 cur = connection.cursor()
 
 cur.execute("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE';")
-# cur.execute("SHOW TABLES;")
 data = []
-tables = []
-for table, *_ in cur:
-    tables.append(table)
+tables = [table for table, *_ in cur]
 
 for table in tables:
     if "cv" not in table:
@@ -33,7 +33,7 @@ for table in tables:
 cur.close()
 connection.close()
 
-filename = "db.sql"
+filename = "../2021-10-26/utils/db.sql"
 
 with open(filename, "wt") as f:
     f.writelines(data)

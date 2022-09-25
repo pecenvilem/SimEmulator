@@ -1,0 +1,69 @@
+Zmìny oproti verzi 2021-08-23:
+
+Blok PositioningSystem:
+
+Tøída AssociatedPointLinearCoord nahrazena tøídou GeoPointLinearCoordinate. Novì napojena na GeoPoint.
+Tøída AssociatedPointGeoCoord nahrazena tøídou GeoPointGeoCoordinate.
+Tøídy PhysicalLocationGeoCoord a PhysicalLocationLinearCoord zrušeny.
+Založena nová tøída GeoLocationOrientation (propojení mezi GeoLocation a PositioningSystem).
+Tøída GeometricPositioningSystem pøejmenována na GeoPositioningSystem.
+Vybrané tøídy pøesunuty do bloku Location (viz dále).
+
+
+Blok Location:
+
+Založena nová tøída LocalizationFeature (specializace NamedResource).
+Tøída AssociatedFeature novì specializací tøídy LocalizationFeature. Pøesunuta do bloku Location. Zmìna zkratky.
+Tøída AssociatedPoint pøejmenována na AssociatedPosition. Pøesunuta do bloku Location. Zmìna zkratky.
+Tøída AssociatedSegment pøejmenována na AssociatedSection. Pøesunuta do bloku Location. Pøejmenování atributù. Zmìna zkratky.
+
+Založena nová tøída GeoFeature (specializace LocalizationFeature).
+Založena nová tøída GeoPoint (specializace GeoFeature).
+Založena nová tøída GeoPolygonalChain (specializace GeoFeature).
+Založena nová tøída PolygonalChainPointAssignment (propojení mezi GeoPolygonalChain a GeoPoint).
+
+Založena nová tøída GeoFeatureAssociatedFeature (propojení mezi GeoFeature a AssociatedFeature).
+
+Tøída FunctionalLocation pøejmenována na AssociatedLocation (pøejmenování atributu functionalLocationType na associatedLocationType).
+Tøída PhysicalLocation pøejmenována na GeoLocation.
+
+Tøída LocationFeatureAssignment pøejmenována na AssociatedLocationFeature (propojení mezi AssociatedLocation a AssociatedFeature).
+Po jejím vzoru založena nová tøída GeoLocationFeature (propojení mezi GeoLocation a GeoFeature).
+
+Do tøídy EntityLocation pøidán atribut entityLocationType – pøedpokládá se, že bude nabývat hodnot "functional", "physical" a "functionallyphysical".
+
+
+Blok NetEntity:
+
+Vytvoøena nová tøída DerivedNetEntity. Byly do ní pøesunuty atributy z tøídy NetEntity (id_NetEntity_Template a derivationRule).
+
+
+Blok Topology:
+
+Tøída UnorderedElementAssignment pøejmenována na UnorderedCollectionElement. Zmìna zkratky.
+Tøída OrderedElementAssignment pøejmenována na OrderedCollectionElement. Zmìna zkratky.
+
+
+Blok Visualization:
+
+Tøída ObjectProjectionCoord pøejmenována na ObjectProjectionCoordinate.
+Tøída ObjectProjectionSymbolCoord pøejmenována na SymbolCoordinate. Zmìna zkratky.
+
+
+Blok ModularEntity:
+
+Tøída Signal pøejmenována na TracksideSignal. Zmìna zkratky. Dùvodem byla nemožnost vytvoøení pohledu s pøipojením tabulky Signal (jedná se o MysQL statement).
+
+
+
+Pohledy:
+
+Vytvoøeny / zmìnìny pohledy na nové / zmìnìné tøídy, pojmenované ve tvaru CV_NázevTøídy.
+Opravena definice pohledu CV_LocatedNetEntity (chybìl NATURAL JOIN NetEntity). CV_TracksideSignal jej již též vygenerován ve scriptu (u CV_Signal vygenerování neprobìhlo).
+
+
+Obecné:
+
+V rozsáhlé míøe pøehodnoceny pøíznaky volitelnosti úèasti ve vztahu pro všechny relace. Napø. u specializací je obecnì nepovinná existence záznamu ve specializované tabulce pro existeci záznamu v ménì specializované tabulce, ale pro existenci záznamu ve specializované tabulce musí existovat záznam v ménì specializované tabulce.
+
+

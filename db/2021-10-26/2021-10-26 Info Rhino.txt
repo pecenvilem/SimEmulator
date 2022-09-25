@@ -1,0 +1,21 @@
+Reálné dopady zmìn struktury k 26. 10. 2021 pro objekty Rhino:
+
+
+Signal > TracksideSignal				XCSign > XCTSign
+
+FunctionalLocation > AssociatedLocation			LFcLoc > LAsLoc
+functionalLocationType > associatedLocationType
+nový atribut v tabulce "EntityLocation" "entityLocationUsage" s hodnotou "functionallyPhysical"
+
+LocationFeatureAssignment > AssociatedLocationFeature	LLocFA > LAsLFt
+id_FunctionalLocation > id_AssociatedLocation
+
+AssociatedPoint > AssociatedPosition			PAssPt > LAssPs
+nová tabulka pro id: LocalizationFeature
+
+AssociatedSegment > AssociatedSection			PAssSg > LAssSc
+id_AssociatedPoint_A > id_AssociatedPosition_A
+id_AssociatedPoint_B > id_AssociatedPosition_B
+nová tabulka pro atribut "id": "LocalizationFeature"
+
+GeometricPositioningSystem > GeoPositioningSystem	bez zmìny zkratky

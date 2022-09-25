@@ -1,0 +1,26 @@
+Zmìny oproti verzi 2021-10-26:
+
+Blok NetEntity:
+
+Tøída EntityLocationAssignment novì propojuje NetEntity a EntityLocation – 	atribut id_LocatedNetEntity pøejmenován na id_NetEntity. Pøidám atribud isDeterminig (0/1), který urèuje, zda se jedná o pøiøazení, které je rozhodující pøi vykreslování symbolu entity.
+Zrušena tøída DerivedNetEntity – 	ve støednìdobém výhledu se neuvažuje s jejím využitím a její existence zpùsobuje potenciální roztøíštìní vìtve dìdìní id.
+Zrušena tøída LocatedNetEntity – 	zpùsobuje potenciální roztøíštìní vìtve dìdìní id. O tom, zda je daná entita lokalizobvaná, se lze pøesvìdèit na základì existence záznamu v tabulce EntityLocationAssignment.
+					Pro pøípad, že by tuto skuteènost bylo žádoucí nìkede ecidovat, je možné zavést atribut isLocated pro tøídu NetEntity.
+					Funkci atributu id_EntityLocation_Primary pøebírá atribut isDetermining tabulky EntityLocationAssignment.
+
+
+Blok PositioningSystem:
+
+Tøída AssociatedPositioningSystem pøejmenována na NetElementPositioningSystem a odebrán ji atribut id. Novì není specializací tøídy BaseObject a její instance jsou definovanými id instancí specializací propojovaných tøíd (zatím se uvažuje pro pøípad dvojice rolí compositionElementPosition a componentElementPosition).
+Tøída GeoLocationOrientation nahrazena tøídou EntityLocationOrientation, která je místo na tøídu GeoLocation napojena na obecnìjší EntityLocation. Pøidány atributy.
+
+
+Blok Location:
+
+Tøída GeoFeatureAssociatedFeature nahrazena tøídou FeatureFeatureAssignment, která pøiøazuje lokalizaènímu prvku v roli A lokalizaèní provek v roli B. Tyto role jsou definovány atributy roleOfA a roleOfB.
+Atribut entityLocationUsage tøídy EntityLocation nahrazen atributy functionalRepresentationReference a physicalRepresentationReference (mohou nabývat hodnot source, target, both, none; výhledovì možnost pøidat další hodnoty, napø. pro vyjádøení, že je pøíslušným zpùsobem entita lokalizována v celé oblasti mezi zdrojem a cílem).
+
+
+
+
+

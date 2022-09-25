@@ -1,0 +1,794 @@
+[
+    [
+        "9da483cb-9261-4fce-9b03-38d802585935",
+        190.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 50,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc020197fff"
+    ],
+    [
+        "902dcdf8-7eb9-4444-af86-33193215bd88",
+        194.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 50,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc020197fff"
+    ],
+    [
+        "4db19623-8331-4c81-9b7c-e8aebc03033b",
+        580.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 0,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 51,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90007fc02019ffff"
+    ],
+    [
+        "7949c5ca-400b-48cc-88ed-ced6c24a63b5",
+        656.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 52,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc0201a7fff"
+    ],
+    [
+        "50b05f70-ca53-4964-9a79-37222d7b275d",
+        660.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 52,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc0201a7fff"
+    ],
+    [
+        "4e0848bd-e5b3-4b67-bcc7-d0eaa666bfd0",
+        998.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 53,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc0201affff"
+    ],
+    [
+        "f666ade4-0a4f-4c21-ba00-f7bf2860c1b1",
+        1002.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 53,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc0201affff"
+    ],
+    [
+        "db5ffd82-7cc3-4969-a5a2-3171f46b120c",
+        1340.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 54,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc0201b7fff"
+    ],
+    [
+        "b797f47e-a543-4bf4-979a-4083aba0000b",
+        1344.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 54,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc0201b7fff"
+    ],
+    [
+        "47529a09-a1cc-4ebf-8955-a16c39303eae",
+        1420.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 0,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 55,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90007fc0201bffff"
+    ],
+    [
+        "e7e87dcd-3043-4c7a-ad8f-8d00fa537498",
+        1806.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 56,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc0201c7fff"
+    ],
+    [
+        "0cdbbfb5-c081-4dc5-a2ba-734c8123170b",
+        1810.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 56,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc0201c7fff"
+    ],
+    [
+        "27f9d7c5-a439-47b4-9f38-1177586cbe19",
+        2300.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 57,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc0201cffff"
+    ],
+    [
+        "8e41fcbf-aeae-4c9d-acc6-1e65f52ca7ca",
+        2304.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 57,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc0201cffff"
+    ],
+    [
+        "588b9192-e349-4031-bd8e-49dc16f19ff9",
+        2900.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 58,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc0201d7fff"
+    ],
+    [
+        "a516a241-330e-4da9-bb2f-9ddcb0a8a617",
+        2904.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 58,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc0201d7fff"
+    ],
+    [
+        "7e1a4ce7-0234-457e-b3c2-caea25bbc39e",
+        3500.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 59,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc0201dffff"
+    ],
+    [
+        "364e6b35-3705-4390-8bd7-9c4c069540a9",
+        3504.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 59,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc0201dffff"
+    ],
+    [
+        "eab7199d-6752-4d03-bf26-09241d91aa4c",
+        4100.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 61,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc0201effff"
+    ],
+    [
+        "26e05d9a-5f77-4fc8-bab2-9910b373c083",
+        4104.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 61,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc0201effff"
+    ],
+    [
+        "1e351385-524e-4fd5-b3e3-eab03383143f",
+        4700.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 62,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc0201f7fff"
+    ],
+    [
+        "1985bab8-1465-4ac3-bfa5-800d7890028c",
+        4704.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 62,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc0201f7fff"
+    ],
+    [
+        "80147fbc-876f-43ae-8df5-fa3d3be8ecc5",
+        5300.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 63,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc0201fffff"
+    ],
+    [
+        "8102be24-f1cc-4eb6-a8cb-9b4d8cdc559d",
+        5304.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 63,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc0201fffff"
+    ],
+    [
+        "887075e1-e3f7-4e5a-bea9-6f8ff03f6abb",
+        5900.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 64,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc020207fff"
+    ],
+    [
+        "3ad1de23-c02e-41e1-bec6-c625933d14e9",
+        5904.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 64,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc020207fff"
+    ],
+    [
+        "852f242d-cca6-4f21-b84b-9b9467ec7c65",
+        6500.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 65,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc02020ffff"
+    ],
+    [
+        "a9ad6b1b-5e11-4864-bc8b-794cc5d5df0f",
+        6504.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 65,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc02020ffff"
+    ],
+    [
+        "667477b7-e08a-4abe-906e-86bebc26b3bb",
+        7100.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 66,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc020217fff"
+    ],
+    [
+        "1e9a5717-0aa3-479a-8969-57e3af52b542",
+        7104.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 66,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc020217fff"
+    ],
+    [
+        "1e81c9b2-c2f8-40e6-8bea-fd94fe3aeabf",
+        7700.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 67,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc02021ffff"
+    ],
+    [
+        "8e1f35a9-aab3-449e-8f30-a08e1174ae17",
+        7704.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 67,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc02021ffff"
+    ],
+    [
+        "38069531-1026-4b46-a572-b128c18ec18c",
+        8190.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 68,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc020227fff"
+    ],
+    [
+        "4b096cf3-4b8f-4075-b049-33927c60cc0d",
+        8194.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 68,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc020227fff"
+    ],
+    [
+        "c2e508ab-139c-4601-84fe-6e534344ce92",
+        8270.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 0,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 69,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90007fc02022ffff"
+    ],
+    [
+        "8b7dcd59-82a0-4f3f-b91c-276b96f8dd0d",
+        8656.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 70,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc020237fff"
+    ],
+    [
+        "0755058c-99ca-4a02-8f95-5e2ae1bcb75c",
+        8660.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 70,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc020237fff"
+    ],
+    [
+        "7c4accd2-c038-4d5e-a7f9-40daf277b9f8",
+        8998.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 71,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc02023ffff"
+    ],
+    [
+        "2ae4be72-ebde-4fb3-8ac8-e743dc8e0918",
+        9002.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 71,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc02023ffff"
+    ],
+    [
+        "b384513c-6bf6-4591-ba8f-3161ae1bba4c",
+        9340.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 72,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc020247fff"
+    ],
+    [
+        "07be4875-623f-4b25-8e32-e79bbf929a08",
+        9344.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 72,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc020247fff"
+    ],
+    [
+        "a7e51ff3-0c30-4d95-86ca-e2998a41d014",
+        9420.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 0,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 73,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90007fc02024ffff"
+    ],
+    [
+        "767b79cf-a053-4a00-b820-d093d68fd8b6",
+        9806.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 0,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 74,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90027fc020257fff"
+    ],
+    [
+        "dad6ecbd-73e0-40ad-9fa4-4c61339f57be",
+        9810.0,
+        {
+            "Q_UPDOWN": "Up link telegram",
+            "M_VERSION": "Class 1",
+            "Q_MEDIA": "Balise",
+            "N_PIG": 1,
+            "N_TOTAL": 1,
+            "M_DUP": "No duplicates",
+            "M_MCOUNT": "The telegram fits with all telegrams of the same balise group",
+            "NID_C": 513,
+            "NID_BG": 74,
+            "Q_LINK": "Linked",
+            "NID_PACKET": 255
+        },
+        "90127fc020257fff"
+    ]
+]

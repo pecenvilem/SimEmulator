@@ -1,0 +1,5 @@
+Oproti verzi 2021-07-13:
+
+Tøída Balise:
+pouze zmìna datového typu atributu defaultTelegram na VARCHAR(256)
+

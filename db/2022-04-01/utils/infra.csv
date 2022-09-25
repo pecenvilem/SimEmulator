@@ -1,0 +1,60 @@
+mileage;feature;direction;detail
+0;buffer;;
+190;balise;;NID_C = 513, NID_BG = 50, N_PIG = 0
+194;balise;;NID_C = 513, NID_BG = 50, N_PIG = 1
+200;signal;nominal;main
+580;balise;;NID_C = 513, NID_BG = 51, N_PIG = 0
+650;signal;reverse;main
+656;balise;;NID_C = 513, NID_BG = 52, N_PIG = 0
+660;balise;;NID_C = 513, NID_BG = 52, N_PIG = 1
+998;balise;;NID_C = 513, NID_BG = 53, N_PIG = 0
+1002;balise;;NID_C = 513, NID_BG = 53, N_PIG = 1
+1340;balise;;NID_C = 513, NID_BG = 54, N_PIG = 0
+1344;balise;;NID_C = 513, NID_BG = 54, N_PIG = 1
+1350;signal;nominal;main
+1420;balise;;NID_C = 513, NID_BG = 55, N_PIG = 0
+1800;signal;reverse;main
+1806;balise;;NID_C = 513, NID_BG = 56, N_PIG = 0
+1810;balise;;NID_C = 513, NID_BG = 56, N_PIG = 1
+2300;balise;;NID_C = 513, NID_BG = 57, N_PIG = 0
+2304;balise;;NID_C = 513, NID_BG = 57, N_PIG = 1
+2400;signal;nominal;
+2900;balise;;NID_C = 513, NID_BG = 58, N_PIG = 0
+2904;balise;;NID_C = 513, NID_BG = 58, N_PIG = 1
+3500;balise;;NID_C = 513, NID_BG = 59, N_PIG = 0
+3504;balise;;NID_C = 513, NID_BG = 59, N_PIG = 1
+3700;signal;both;
+4100;balise;;NID_C = 513, NID_BG = 61, N_PIG = 0
+4104;balise;;NID_C = 513, NID_BG = 61, N_PIG = 1
+4700;balise;;NID_C = 513, NID_BG = 62, N_PIG = 0
+4704;balise;;NID_C = 513, NID_BG = 62, N_PIG = 1
+5000;signal;both;
+5300;balise;;NID_C = 513, NID_BG = 63, N_PIG = 0
+5304;balise;;NID_C = 513, NID_BG = 63, N_PIG = 1
+5900;balise;;NID_C = 513, NID_BG = 64, N_PIG = 0
+5904;balise;;NID_C = 513, NID_BG = 64, N_PIG = 1
+6300;signal;both;
+6500;balise;;NID_C = 513, NID_BG = 65, N_PIG = 0
+6504;balise;;NID_C = 513, NID_BG = 65, N_PIG = 1
+7100;balise;;NID_C = 513, NID_BG = 66, N_PIG = 0
+7104;balise;;NID_C = 513, NID_BG = 66, N_PIG = 1
+7600;signal;reverse;
+7700;balise;;NID_C = 513, NID_BG = 67, N_PIG = 0
+7704;balise;;NID_C = 513, NID_BG = 67, N_PIG = 1
+8190;balise;;NID_C = 513, NID_BG = 68, N_PIG = 0
+8194;balise;;NID_C = 513, NID_BG = 68, N_PIG = 1
+8200;signal;nominal;main
+8270;balise;;NID_C = 513, NID_BG = 69, N_PIG = 0
+8650;signal;reverse;main
+8656;balise;;NID_C = 513, NID_BG = 70, N_PIG = 0
+8660;balise;;NID_C = 513, NID_BG = 70, N_PIG = 1
+8998;balise;;NID_C = 513, NID_BG = 71, N_PIG = 0
+9002;balise;;NID_C = 513, NID_BG = 71, N_PIG = 1
+9340;balise;;NID_C = 513, NID_BG = 72, N_PIG = 0
+9344;balise;;NID_C = 513, NID_BG = 72, N_PIG = 1
+9350;signal;nominal;main
+9420;balise;;NID_C = 513, NID_BG = 73, N_PIG = 0
+9800;signal;reverse;main
+9806;balise;;NID_C = 513, NID_BG = 74, N_PIG = 0
+9810;balise;;NID_C = 513, NID_BG = 74, N_PIG = 1
+10000;buffer;;
