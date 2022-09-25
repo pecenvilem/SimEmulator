@@ -2,13 +2,30 @@ import json
 import tkinter as tk
 import tkinter.messagebox as msb
 import mysql.connector
-from secrets import db_host, db_user, db_password, db_database
+from configuration import DATABASE_CREDENTIALS_FILE
 from configuration import QUERY_FILE
 with open(QUERY_FILE, "rt") as f:
     query = f.read()
 # TODO: PARAM
 from configuration import STARTING_NET_ELEMENT
-query = query.format(STARTING_NET_ELEMENT=STARTING_NET_ELEMENT)
+
+
+def load_credentials(filename):
+    with open(filename, "rt") as f:
+        credentials = json.load(f)
+        try:
+            check_credentials(credentials)
+        except ValueError as e:
+            raise ValueError(f"Loading database credentials from file {filename} failed!") from e
+    return credentials
+
+
+def check_credentials(credentials):
+    if not isinstance(credentials, dict):
+        raise ValueError(f"Incorrect type! 'dict' required but got '{type(credentials)}' instead.")
+    for key in ["host", "user", "password", "database"]:
+        if key not in credentials:
+            raise ValueError(f"{key} key missing in credentials!")
 
 
 class TrackMap(tk.Frame):
@@ -58,10 +75,35 @@ class TrackMap(tk.Frame):
         tl = tk.Toplevel(self)
         tl.transient(self)
         tl.focus_set()
-        host = tk.StringVar(value=db_host)
-        user = tk.StringVar(value=db_user)
-        password = tk.StringVar(value=db_password)
-        database = tk.StringVar(value=db_database)
+
+        try:
+            with open(QUERY_FILE, "rt") as f:
+                query = f.read()
+            # TODO: PARAM
+            query = query.format(STARTING_NET_ELEMENT=STARTING_NET_ELEMENT)
+        except FileNotFoundError as e:
+            msb.showerror(
+                "Načtení SQL dotazu.",
+                str(e)
+            )
+            return
+
+        host = tk.StringVar()
+        user = tk.StringVar()
+        password = tk.StringVar()
+        database = tk.StringVar()
+
+        try:
+            credentials = load_credentials(DATABASE_CREDENTIALS_FILE)
+            host = tk.StringVar(value=credentials["host"])
+            user = tk.StringVar(value=credentials["user"])
+            password = tk.StringVar(value=credentials["password"])
+            database = tk.StringVar(value=credentials["database"])
+        except ValueError as e:
+            msb.showerror(
+                "Načtení přihlašovacích údajů.",
+                str(e)
+            )
 
         def load():
             try:
@@ -71,19 +113,19 @@ class TrackMap(tk.Frame):
                     password=password.get(),
                     database=database.get()
                 )
-            except mysql.connector.Error as e:
+            except mysql.connector.Error as err:
                 msb.showerror(
                     "Připojení k databázi",
-                    str(e)
+                    str(err)
                 )
                 return
             cursor = connection.cursor()
             try:
                 cursor.execute(query)
-            except mysql.connector.errors.DatabaseError as e:
+            except mysql.connector.errors.DatabaseError as err:
                 msb.showerror(
                     "Hledání v databázi",
-                    str(e)
+                    str(err)
                 )
                 return
             else:

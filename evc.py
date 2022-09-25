@@ -6,15 +6,18 @@ import tkinter.messagebox
 import paho.mqtt.client
 import threading
 
+from main import load_mqtt_credentials
+from configuration import MQTT_CREDENTIALS_FILE
+
 
 class MQTTClient:
 
     def __init__(self, service_brake_var, emergency_brake_var, interval = 1000):
-        from secrets import mqtt_host, mqtt_port, mqtt_username, mqtt_password
+        credentials = load_mqtt_credentials(MQTT_CREDENTIALS_FILE)
         self.client = paho.mqtt.client.Client(client_id="Dummy EVC")
-        if mqtt_username is not None:
-            self.client.username_pw_set(mqtt_username, mqtt_password)
-        self.client.connect(mqtt_host, int(mqtt_port))
+        if credentials["username"] is not None:
+            self.client.username_pw_set(credentials["username"], credentials["password"])
+        self.client.connect(credentials["host"], int(credentials["port"]))
         self.client.loop_start()
         self._interval = interval / 1000
         self.emergency_var = emergency_brake_var

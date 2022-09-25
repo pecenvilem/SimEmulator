@@ -24,6 +24,24 @@ COMM_CONFIG = os.path.join(DIR, "comm_config.json")
 HJP = os.path.join(IMG, "hjp")
 
 
+def load_mqtt_credentials(filename):
+    with open(filename, "rt") as f:
+        credentials = json.load(f)
+        try:
+            check_mqtt_credentials(credentials)
+        except ValueError as e:
+            raise ValueError(f"Loading database credentials from file {filename} failed!") from e
+    return credentials
+
+
+def check_mqtt_credentials(credentials):
+    if not isinstance(credentials, dict):
+        raise ValueError(f"Incorrect type! 'dict' required but got '{type(credentials)}' instead.")
+    for key in ["name", "host", "port", "username", "password"]:
+        if key not in credentials:
+            raise ValueError(f"{key} key missing in credentials!")
+
+
 # noinspection SpellCheckingInspection
 class Sim:
     """Slouží k fyzikální simulaci pohybu vlaku"""
@@ -642,12 +660,21 @@ class MqttPane(CommPane):
         super().__init__(parent)
         self.comm = comm
 
-        from secrets import mqtt_host, mqtt_port, mqtt_username, mqtt_password
+        self.host = tk.StringVar()
+        self.port = tk.StringVar()
+        self.username = tk.StringVar()
+        self.password = tk.StringVar()
 
-        self.host = tk.StringVar(value=mqtt_host)
-        self.port = tk.StringVar(value=mqtt_port)
-        self.username = tk.StringVar(value=mqtt_username)
-        self.password = tk.StringVar(value=mqtt_password)
+        from configuration import MQTT_CREDENTIALS_FILE
+
+        try:
+            credentials = load_mqtt_credentials(MQTT_CREDENTIALS_FILE)
+            self.host.set(credentials["host"])
+            self.port.set(credentials["port"])
+            self.username.set(credentials["username"])
+            self.password.set(credentials["password"])
+        except ValueError as e:
+            msb.showerror(title="Chyba načítání", message=str(e))
 
         tk.Label(self, text="Host:").grid(row=0, column=0)
         tk.Entry(self, textvariable=self.host, width=15).grid(row=0, column=1)
