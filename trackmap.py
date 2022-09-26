@@ -32,7 +32,6 @@ class TrackMap(tk.Frame):
         self.height = kwargs.pop("height", 300)
         self.width = kwargs.pop("width", 300)
         self.variable = kwargs.pop("variable", tk.StringVar())
-        self.range = kwargs.pop("balise_transmitt_range", 1)
         super().__init__(parent, *args, **kwargs)
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(10, weight=1)
