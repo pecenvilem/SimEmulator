@@ -79,7 +79,6 @@ QUERY_FILE = "db/2022-04-01/utils/balises_2022-04-01.sql"
 # QUERY_FILE = "db/2021-10-26/utils/balises_x21.sql"
 
 # after loading balise positions, shift all positions by 'STARTING_OFFSET' towards the locomotive
-# TODO: set in accordance with data used by EVC
 # STARTING_OFFSET = 402.6  # m
 STARTING_OFFSET = 0  # m
 
