@@ -806,7 +806,7 @@ class Emulator(tk.Tk):
             "TRAIN_LINE_PRESSURE": tk.DoubleVar(value=5),
             "EP_VALVE": tk.BooleanVar(value=False),
             "BRAKE": tk.BooleanVar(value=False),
-            "CONTROL_SWITCH": tk.BooleanVar(value=0),
+            "CONTROL_SWITCH": tk.BooleanVar(value=False),
             "DRIVING_LEAVER": tk.IntVar(value=3),
             "BALISE_TELEGRAM": tk.StringVar(value="{}")
         }
