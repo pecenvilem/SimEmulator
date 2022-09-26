@@ -133,63 +133,13 @@ class TrackMap(tk.Frame):
                 total_dist = 0
                 from configuration import STARTING_OFFSET
                 for i, record in enumerate(data):
-                    element, length, intrinsic, delta, balise, pos_in_group, duplicate, group, def_tgmr,  *_ = record
+                    element_id, length, intrinsic, delta, balise_id, telegram = record
                     if i != 0:
                         prev_element, prev_length, *_ = data[i - 1]
-                        if prev_element != element:
+                        if prev_element != element_id:
                             total_dist += prev_length
-                    if balise is not None:
-                        # match = re.search(r"\d+", group)
-                        # try:
-                        #     group = int(match.group())
-                        # except ValueError:
-                        #     # invalid number - reserved for linking
-                        #     # [intention is to cause an error since balise group number was not recognized]
-                        #     group = 16383
-                        # dist = total_dist + intrinsic * length + delta
-                        # telegram = {
-                        #     "Q_UPDOWN": 1,
-                        #     "M_VERSION": 16,
-                        #     "Q_MEDIA": 0,
-                        #     "N_PIG": pos_in_group,
-                        #     "N_TOTAL": 1,
-                        #     "M_DUP": duplicate,
-                        #     "M_MCOUNT": 0,
-                        #     "NID_C": 513,
-                        #     "NID_BG": group,
-                        #     "Q_LINK": 0,
-                        #     "End of Information": {
-                        #         "NID_PACKET": 255
-                        #     }
-                        # }
-
-                        # Pulling default telegrams from DB
-                        # According to SUBSET-026-7 v0360 total length of telegram should be 58 bits
-                        # DB returns 64 bit long hex number
-                        #
+                    if balise_id is not None:
                         dist = total_dist + intrinsic * length + delta
-                        def_tgmr = int(def_tgmr, base=16)
-                        i = len(f"{def_tgmr:b}")
-                        telegram = {
-                            "Q_UPDOWN": (def_tgmr & (1 << (i - 1))) >> (i - 1),  # 1 bit [1]
-                            "M_VERSION": (def_tgmr & (127 << (i - 8))) >> (i - 8),  # 7 bits [2-8]
-                            "Q_MEDIA": (def_tgmr & (1 << (i - 9))) >> (i - 9),  # 1 bit [9],
-                            "N_PIG": (def_tgmr & (7 << (i - 12))) >> (i - 12),  # 3 bits [10-12],
-                            # TODO: Remove placeholder for N_TOTAL variable when DB data is corrected!
-                            # "N_TOTAL": (def_tgmr & (7 << (i - 15))) >> (i - 15),  # 3 bits [13-15],
-                            "N_TOTAL": 1,  # 3 bits [13-15],
-                            "M_DUP": (def_tgmr & (3 << (i - 17))) >> (i - 17),  # 2 bits [16-17],
-                            "M_MCOUNT": (def_tgmr & (255 << (i - 25))) >> (i - 25),  # 8 bits [18-25],
-                            "NID_C": (def_tgmr & (1023 << (i - 35))) >> (i - 35),  # 10 bits [26-35],
-                            # TODO: Remove artificial increment in NID_BG when DB data is corrected!
-                            # "NID_BG": ((def_tgmr & (16383 << (i - 49))) >> (i - 49)),  # 14 bits [36-49],
-                            "NID_BG": ((def_tgmr & (16383 << (i - 49))) >> (i - 49)) + 1,  # 14 bits [36-49],
-                            "Q_LINK": (def_tgmr & (1 << (i - 50))) >> (i - 50),  # 1 bit [50],
-                            "End of Information": {
-                                "NID_PACKET": 255  # 8 more bits [51-58]
-                            }
-                        }
-                        # common append for both the original and new method of reading telegrams
                         self.balises.append({"position": dist - STARTING_OFFSET, "telegram": json.dumps(telegram)})
                 if not DATABASE_AUTOCONNECT:
                     msb.showinfo(
