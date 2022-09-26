@@ -12,13 +12,14 @@ MQTT_LOOP_FREQUENCY = 1000
 MQTT_AUTOCONNECT = True
 
 # MQTT topic designated for incoming messages (only messages from EVC are expected)
-SUBCRIBE_TOPIC = "+/tiu/#"
+TIU_SUBSCRIBE_TOPIC = "+/tiu/#"
+ODDO_SUBSCRIBE_TOPIC = "+/odo/#"
 
 # intervals for transmitting values
 # positive numbers - interval in milliseconds [ms]
 # 0 - transmit only ON CHANGE
 # negative number - transmit in given interval [ms], when change occurs, transmit immediately
-ODO_INTERVAL = 100  # ms - i.e. 10 Hz
+ODO_INTERVAL = 100  # ms - i.e. 10 Hz !!! don't set negative intervals - NOT COMPATIBLE with new EVC implementation
 TIU_INTERVAL = 0
 BTM_INTERVAL = 0
 
@@ -82,6 +83,18 @@ QUERY_FILE = "db/2022-04-01/utils/balises_2022-04-01.sql"
 # STARTING_OFFSET = 402.6  # m
 STARTING_OFFSET = 0  # m
 
+
+##################################################
+# Default ETCS component configuration ###########
+##################################################
+
+# ODO ############################################
+# value stored in the cyclical distance counter of the odometer on power up
+DEFAULT_DISPLACEMENT = 0
+
+# confidence interval span
+DEFAULT_UNDERREADING = 100
+DEFAULT_OVERREADING = 100
 
 ##################################################
 # Physics simulation #############################

@@ -1,6 +1,8 @@
 from tkinter.font import Font
 from abc import ABC, abstractmethod
 
+import fixedint
+
 from locogauge import SpeedGauge, TractiveEffortGauge, PressureGauge, ControlLeaver, RotarySwitch, SwitchPosition, \
     LeaverSwitch
 from trackmap import TrackMap
@@ -380,7 +382,12 @@ class Sim:
                 self.controller.mp.track.shift(dist)
 
                 # SEND and DISPLAY output values
+
+                self.controller.comm_variables["DISPLACEMENT"].set(
+                    self.controller.comm_variables["DISPLACEMENT"].get() + abs(dist)
+                )  # cm
                 self.controller.comm_variables["SPEED"].set(speed * 3.6)  # km/h
+                self.controller.comm_variables["ACCELERATION"].set(acceleration)  # m/(s^2)
                 self.controller.comm_variables["TRAIN_LINE_PRESSURE"].set(tl)
                 self.controller.comm_variables["BRAKE_CYLINDER_PRESSURE"].set(bc)
                 self.controller.sim_variables["RELATIVE_EFFORT"].set(relative_effort)
@@ -574,10 +581,14 @@ class MqttComm(Comm):
             self.client.username_pw_set(self.username, self.password)
         self.client.connect(self.host, self.port)
         # self.client.subscribe("+/tiu/#") # TODO - PARAM: message structure
-        from configuration import SUBCRIBE_TOPIC
-        self.client.subscribe(SUBCRIBE_TOPIC)
-        self.client.on_message = self.on_message
-        self.client.on_disconnect = self.on_disconect
+        from configuration import TIU_SUBSCRIBE_TOPIC
+        from configuration import ODDO_SUBSCRIBE_TOPIC
+        self.client.subscribe(TIU_SUBSCRIBE_TOPIC)
+        self.client.subscribe(ODDO_SUBSCRIBE_TOPIC)
+        self.client.message_callback_add(TIU_SUBSCRIBE_TOPIC, self.tiu_message_receive)
+        self.client.message_callback_add(ODDO_SUBSCRIBE_TOPIC, self.oddo_message_receive)
+        # self.client.on_message = self.on_message
+        self.client.on_disconnect = self.on_disconnect
         self.thread = threading.Thread(target=self.run, daemon=True)
         self._run = True
         self.paused = False
@@ -585,15 +596,17 @@ class MqttComm(Comm):
         return True
 
     # noinspection PyUnusedLocal
-    def on_disconect(self, client, userdata, rc):
+    def on_disconnect(self, client, userdata, rc):
         if self._run:
             self.client.reconnect()
             # self.client.subscribe("+/tiu/#") # TODO - PARAM: message structure
-            from configuration import SUBCRIBE_TOPIC
-            self.client.subscribe(SUBCRIBE_TOPIC)
+            from configuration import TIU_SUBSCRIBE_TOPIC
+            from configuration import ODDO_SUBSCRIBE_TOPIC
+            self.client.subscribe(TIU_SUBSCRIBE_TOPIC)
+            self.client.subscribe(ODDO_SUBSCRIBE_TOPIC)
 
     # noinspection PyUnusedLocal
-    def on_message(self, client, userdata, message):
+    def tiu_message_receive(self, client, userdata, message):
         data = json.loads(message.payload.decode('ascii'))
         try:
             self.controller.comm_variables["BRAKE"].set(data["service_brake"])
@@ -601,25 +614,79 @@ class MqttComm(Comm):
         except KeyError:
             print("Invalid data received from EVC!")
 
+    # noinspection PyUnusedLocal
+    def oddo_message_receive(self, client, userdata, message):
+        responses = {
+            "401": self.oddo_config,
+            "406": self.oddo_init
+        }
+        data = json.loads(message.payload.decode('ascii'))
+        try:
+            responses[str(data["NID_MESSAGE"])](data)
+        except KeyError:
+            print(f"Invalid data received from EVC with topic: {message.topic}!")
+
+    def oddo_config(self, data: dict):
+        try:
+            self.intervals["ODO"] = int(data["T_ODO_CYC"]) / 1000
+        except KeyError:
+            print("Invalid 'STATUS REQUEST AND CONFIGURATION' message! Missing 'T_ODO_CYC' field!")
+        else:
+            self.controller.comm_variables["ODO_START_UP"].set(True)
+
+    def oddo_init(self, data: dict):
+        try:
+            self.controller.comm_variables["DISPLACEMENT"].set(data["D_TRAIN"])
+        except KeyError:
+            print("DISCARDING invalid 'ODOMETER INITIALIZATION' message! Missing 'D_TRAIN' field!")
+        else:
+            try:
+                self.controller.comm_variables["UNDERREADING"].set(data["DL_DOUBTOVER"])
+            except KeyError:
+                print("Disregarding missing 'DL_DOUBTOVER' field in 'ODOMETER INITIALIZATION' message!")
+            try:
+                self.controller.comm_variables["OVERREADING"].set(data["DL_DOUBTUNDER"])
+            except KeyError:
+                print("Disregarding missing 'DL_DOUBTUNDER' field in 'ODOMETER INITIALIZATION' message!")
+
     def run(self):
         while self._run:
             if not self.paused:
                 self.client.loop(timeout=1/self.loop_frequency)
 
                 # ODO
+                # TODO: change according to the EEIG : 97E2675B (ODOMETER FFFIS)
                 if time.time() >= self.last_transmissions["ODO"] + self.intervals["ODO"] or self.tx_requests["ODO"]:
-                    data = json.dumps(
-                        {"train_speed": self.controller.comm_variables["SPEED"].get()/3.6}
-                    )
-                    self.client.publish("odo/evc", data)
-                    self.last_transmissions["ODO"] = time.time()
-                    if self.tx_requests["ODO"]:
-                        self.tx_requests["ODO"] -= 1
+                    if self.controller.comm_variables["ODO_START_UP"].get():
+                        displacement = self.controller.comm_variables["DISPLACEMENT"].get()
+                        counter = fixedint.FixedInt(width=27, signed=False)
+                        odo = counter(int(displacement * 100))
+                        data = json.dumps(
+                            {
+                                "NID_MESSAGE": 481,
+                                "Q_CONTROL": 0b100_000_000,
+                                "D_TRAIN": int(odo),
+                                "V_TRAIN": abs(self.controller.comm_variables["SPEED"].get()) // 5,
+                                "A_TRAIN": (self.controller.comm_variables["ACCELERATION"].get() * 1000) // 3,
+                                "NIC_C": 513,  # !!! PLACEHOLDER
+                                "NID_BG": 0,  # !!! PLACEHOLDER
+                                "DL_DOUBTOVER": int(self.controller.comm_variables["OVERREADING"].get()),
+                                "DL_DOUBTUNDER": int(self.controller.comm_variables["UNDERREADING"].get()),
+                                "V_DOUBTPOS ": 0,  # !!! PLACEHOLDER
+                                "V_DOUBTNEG": 0,  # !!! PLACEHOLDER
+                                "Q_DIRECTION": np.sign(self.controller.comm_variables["SPEED"].get())
+                            }
+                        )
+                        self.client.publish("odo/evc", data)
+                        self.last_transmissions["ODO"] = time.time()
+                        if self.tx_requests["ODO"]:
+                            self.tx_requests["ODO"] -= 1
 
                 # TIU
                 if time.time() >= self.last_transmissions["TIU"] + self.intervals["TIU"] or self.tx_requests["TIU"]:
                     data = json.dumps(
                         {
+                            "NID_MESSAGE": 602,
                             "battery_power": self.controller.comm_variables["BATTERY"].get(),
                             "cab": self.controller.comm_variables["CONTROL_SWITCH"].get(),
                             "train_direction": self.controller.comm_variables["DIRECTION_LEAVER"].get()
@@ -722,10 +789,18 @@ class Emulator(tk.Tk):
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)
 
+        from configuration import DEFAULT_DISPLACEMENT
+        from configuration import DEFAULT_UNDERREADING
+        from configuration import DEFAULT_OVERREADING
         # variables storing data to be transmitted to the simulator
         self.comm_variables = {
             "BATTERY": tk.BooleanVar(value=False),
+            "ODO_START_UP": tk.BooleanVar(value=False),
+            "DISPLACEMENT": tk.DoubleVar(value=DEFAULT_DISPLACEMENT),
+            "UNDERREADING": tk.DoubleVar(value=DEFAULT_UNDERREADING),
+            "OVERREADING": tk.DoubleVar(value=DEFAULT_OVERREADING),
             "SPEED": tk.DoubleVar(value=0),
+            "ACCELERATION": tk.DoubleVar(value=0),
             "DIRECTION_LEAVER": tk.IntVar(value=2),
             "BRAKE_CYLINDER_PRESSURE": tk.DoubleVar(value=6),
             "TRAIN_LINE_PRESSURE": tk.DoubleVar(value=5),

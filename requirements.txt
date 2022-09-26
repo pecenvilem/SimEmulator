@@ -4,3 +4,4 @@ paho-mqtt==1.6.1
 Pillow==9.2.0
 protobuf==4.21.6
 pyserial==3.5
+fixedint~=0.2.0
