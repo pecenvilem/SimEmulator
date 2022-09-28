@@ -48,30 +48,6 @@ def check_mqtt_credentials(credentials):
 class Sim:
     """Slouží k fyzikální simulaci pohybu vlaku"""
 
-    # MASS = 200  # t # TODO: PARAM
-    # FULL_TRAIN_BRAKE_ACCELERATION = 0.9  # m/s/s # TODO: PARAM
-    # BRAKING_FORCE = MASS * FULL_TRAIN_BRAKE_ACCELERATION  # kN # TODO: PARAM
-    # FILLING_TIME = 7  # s # TODO: PARAM
-    # VENTING_TIME = 16  # s # TODO: PARAM
-    # POWER = 6400  # kW # TODO: PARAM
-    # SLOPE = 0  # promille # TODO: PARAM
-    # ADHESION_UTILISATION = 0.8 # TODO: PARAM
-    # A = 0.00033 # TODO: PARAM
-    # B = 0.0008 # TODO: PARAM
-    # C = 1.35 # TODO: PARAM
-    # TRAIN_LINE_DP = 0.20  # bar/s # TODO: PARAM
-    # TRAIN_LINE_VENT_TIME = 1.5  # s # TODO: PARAM
-    # LOCO_PARKING_BRAKE = 35  # kN # TODO: PARAM
-    # LOCO_PARKING_TIME = 2.5  # s # TODO: PARAM
-    # LOCO_MAX_EDB = 150  # kN # TODO: PARAM
-    # LOCO_MAX_TRACTION = 300  # kN # TODO: PARAM
-    # LOCO_DTRAX = LOCO_MAX_TRACTION / 6  # kN/s # TODO: PARAM
-    # LOCO_DEDB = LOCO_MAX_EDB / 6  # kN/s # TODO: PARAM
-    # LOCO_TRACTION_DELAY = 0.4  # s # TODO: PARAM
-    # MAX_TR_BR_APL = 3.8    # bar # TODO: PARAM
-    # MAX_DIR_BR_APL = 6     # bar # TODO: PARAM
-    # MAX_TL_PRESS = 5        # bar # TODO: PARAM
-
     from configuration import MASS
     # noinspection PyUnresolvedReferences
     from configuration import FULL_TRAIN_BRAKE_ACCELERATION
@@ -230,8 +206,7 @@ class Sim:
                 if etcs_brake:
                     traction = "off"
                     edb = "full"
-                    # if tl > self.TL_PRESS_MAX_TR_BR:
-                    if tl > 3.5:  # TODO: PARAM
+                    if tl > self.TL_PRESS_MAX_TR_BR:
                         train_brake = "apply"
                     else:
                         train_brake = "hold"
@@ -314,7 +289,6 @@ class Sim:
                 if traction_indication < 0 and abs(speed) <= 40.0 * 3.6:
                     traction_indication = max(traction_indication, -abs(speed) / 40 * 3.6 * self.LOCO_MAX_EDB * 1000)
                 # prevent oscilation
-                # if traction_target == 0 and abs(traction_indication) < 500: # TODO: PARAM - traction cut-off
                 if traction_target == 0 and abs(traction_indication) < self.TRACTION_CUT_OFF:
                     traction_indication = 0
                 if speed != 0:
@@ -325,9 +299,7 @@ class Sim:
 
                 # TRAIN BRAKE
                 if train_brake == "emergency":
-                    # if tl > 0.3: # TODO: PARAM
                     if tl > self.TL_VENT_ELBOW:
-                        # dtl = 5 * dt / self.TRAIN_LINE_VENT_TIME * tl # TODO: PARAM - max TL pressure
                         dtl = self.MAX_TL_PRESS * dt / self.TRAIN_LINE_VENT_TIME * tl
                     else:
                         dtl = self.MAX_TL_PRESS * dt / 5 / self.TRAIN_LINE_VENT_TIME
@@ -336,8 +308,6 @@ class Sim:
                     tl = max(0, tl - self.TRAIN_LINE_DP * dt)
                 elif train_brake == "release":
                     tl = min(5, tl + self.TRAIN_LINE_DP * dt)
-                # TODO: PARAM
-                # reduction_percentage = min(self.MAX_TL_PRESS - tl, self.MAX_TL_PRESS - 3.5)/(self.MAX_TL_PRESS - 3.5)
                 nom = min(self.MAX_TL_PRESS - tl, self.MAX_TL_PRESS - self.TL_PRESS_MAX_TR_BR)
                 denom = self.MAX_TL_PRESS - self.TL_PRESS_MAX_TR_BR
                 reduction_percentage = nom / denom
@@ -350,7 +320,6 @@ class Sim:
                 brake = tb_application / self.MAX_TR_BR_APL * self.train_brake
 
                 # DIRECT BRAKE
-                # if abs(speed) < 1.0 / 3.6 and hjp not in (4, 5):  # AUTOMATIC PARKING # TODO: PARAM
                 if abs(speed) < self.PARKING_BRAKE_AUTOMATIC_ENGAGE / 3.6 and hjp not in (4, 5):
                     db_target = self.MAX_DIR_BR_APL
                 else:
@@ -580,14 +549,12 @@ class MqttComm(Comm):
         if self.username is not None:
             self.client.username_pw_set(self.username, self.password)
         self.client.connect(self.host, self.port)
-        # self.client.subscribe("+/tiu/#") # TODO - PARAM: message structure
         from configuration import TIU_SUBSCRIBE_TOPIC
         from configuration import ODDO_SUBSCRIBE_TOPIC
         self.client.subscribe(TIU_SUBSCRIBE_TOPIC)
         self.client.subscribe(ODDO_SUBSCRIBE_TOPIC)
         self.client.message_callback_add(TIU_SUBSCRIBE_TOPIC, self.tiu_message_receive)
         self.client.message_callback_add(ODDO_SUBSCRIBE_TOPIC, self.oddo_message_receive)
-        # self.client.on_message = self.on_message
         self.client.on_disconnect = self.on_disconnect
         self.thread = threading.Thread(target=self.run, daemon=True)
         self._run = True
@@ -599,7 +566,6 @@ class MqttComm(Comm):
     def on_disconnect(self, client, userdata, rc):
         if self._run:
             self.client.reconnect()
-            # self.client.subscribe("+/tiu/#") # TODO - PARAM: message structure
             from configuration import TIU_SUBSCRIBE_TOPIC
             from configuration import ODDO_SUBSCRIBE_TOPIC
             self.client.subscribe(TIU_SUBSCRIBE_TOPIC)
@@ -652,7 +618,7 @@ class MqttComm(Comm):
     def run(self):
         while self._run:
             if not self.paused:
-                self.client.loop(timeout=1/self.loop_frequency)
+                self.client.loop(timeout=1 / self.loop_frequency)
 
                 # ODO
                 # TODO: change according to the EEIG : 97E2675B (ODOMETER FFFIS)

@@ -5,7 +5,7 @@
 # connection credentials
 MQTT_CREDENTIALS_FILE = ".\\secrets\\mqtt\\local.json"
 
-# number of communication loop run per second - internal delay after each loop is set accordingly
+# number of communication loop runs per second - internal delay after each loop is set accordingly
 MQTT_LOOP_FREQUENCY = 1000
 
 # connect automatically after startup without prompting the user
@@ -28,6 +28,7 @@ BTM_INTERVAL = 0
 ##################################################
 
 # database credentials
+# noinspection SpellCheckingInspection
 DATABASE_CREDENTIALS_FILE = ".\\secrets\\database\\local_mysqlwb_2022-04-01.json"
 
 # connect automatically after startup without prompting the user
@@ -129,7 +130,7 @@ POWER = 6400  # kW
 # default slope of the track used in simulation
 SLOPE = 0
 
-# default value of the 'adhesion utilisation coefficient' (describes the "slipperiness" of the track]
+# default value of the 'adhesion utilisation coefficient' (describes the "slipperiness" of the track)
 ADHESION_UTILISATION = 0.8
 
 # absolute coefficient in the equation of train resistance
