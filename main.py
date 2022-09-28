@@ -616,37 +616,43 @@ class MqttComm(Comm):
                 print("Disregarding missing 'DL_DOUBTUNDER' field in 'ODOMETER INITIALIZATION' message!")
 
     def run(self):
+        from configuration import SUBSET_COMMUNICATION_FORMAT
         while self._run:
             if not self.paused:
                 self.client.loop(timeout=1 / self.loop_frequency)
 
                 # ODO
                 # TODO: change according to the EEIG : 97E2675B (ODOMETER FFFIS)
-                if time.time() >= self.last_transmissions["ODO"] + self.intervals["ODO"] or self.tx_requests["ODO"]:
-                    if self.controller.comm_variables["ODO_START_UP"].get():
-                        displacement = self.controller.comm_variables["DISPLACEMENT"].get()
-                        counter = fixedint.FixedInt(width=27, signed=False)
-                        odo = counter(int(displacement * 100))
-                        data = json.dumps(
-                            {
-                                "NID_MESSAGE": 481,
-                                "Q_CONTROL": 0b100_000_000,
-                                "D_TRAIN": int(odo),
-                                "V_TRAIN": abs(self.controller.comm_variables["SPEED"].get()) // 5,
-                                "A_TRAIN": (self.controller.comm_variables["ACCELERATION"].get() * 1000) // 3,
-                                "NIC_C": 513,  # !!! PLACEHOLDER
-                                "NID_BG": 0,  # !!! PLACEHOLDER
-                                "DL_DOUBTOVER": int(self.controller.comm_variables["OVERREADING"].get()),
-                                "DL_DOUBTUNDER": int(self.controller.comm_variables["UNDERREADING"].get()),
-                                "V_DOUBTPOS ": 0,  # !!! PLACEHOLDER
-                                "V_DOUBTNEG": 0,  # !!! PLACEHOLDER
-                                "Q_DIRECTION": np.sign(self.controller.comm_variables["SPEED"].get())
-                            }
-                        )
-                        self.client.publish("odo/evc", data)
-                        self.last_transmissions["ODO"] = time.time()
-                        if self.tx_requests["ODO"]:
-                            self.tx_requests["ODO"] -= 1
+                if ((time.time() >= self.last_transmissions["ODO"] + self.intervals["ODO"] or self.tx_requests["ODO"])
+                        and self.controller.comm_variables["ODO_START_UP"].get()):
+                    displacement = self.controller.comm_variables["DISPLACEMENT"].get()
+                    counter = fixedint.FixedInt(width=27, signed=False)
+                    odo = counter(int(displacement * 100))
+                    data = json.dumps(
+                        {
+                            "NID_MESSAGE": 481,
+                            "Q_CONTROL": 0b100_000_000,
+                            "D_TRAIN": int(odo),
+
+                            "V_TRAIN": abs(self.controller.comm_variables["SPEED"].get()) // 5
+                            if SUBSET_COMMUNICATION_FORMAT else abs(self.controller.comm_variables["SPEED"].get()),
+
+                            "A_TRAIN": (self.controller.comm_variables["ACCELERATION"].get() * 1000) // 3
+                            if SUBSET_COMMUNICATION_FORMAT else self.controller.comm_variables["ACCELERATION"].get(),
+
+                            "NIC_C": 513,  # !!! PLACEHOLDER
+                            "NID_BG": 0,  # !!! PLACEHOLDER
+                            "DL_DOUBTOVER": int(self.controller.comm_variables["OVERREADING"].get()),
+                            "DL_DOUBTUNDER": int(self.controller.comm_variables["UNDERREADING"].get()),
+                            "V_DOUBTPOS ": 0,  # !!! PLACEHOLDER
+                            "V_DOUBTNEG": 0,  # !!! PLACEHOLDER
+                            "Q_DIRECTION": np.sign(self.controller.comm_variables["SPEED"].get())
+                        }
+                    )
+                    self.client.publish("odo/evc", data)
+                    self.last_transmissions["ODO"] = time.time()
+                    if self.tx_requests["ODO"]:
+                        self.tx_requests["ODO"] -= 1
 
                 # TIU
                 if time.time() >= self.last_transmissions["TIU"] + self.intervals["TIU"] or self.tx_requests["TIU"]:

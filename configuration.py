@@ -65,6 +65,9 @@ DEFAULT_DISPLACEMENT = 0
 DEFAULT_UNDERREADING = 100
 DEFAULT_OVERREADING = 100
 
+# use communication format according to EEIG: 97E2675B and SRS 026 - 7
+SUBSET_COMMUNICATION_FORMAT = False
+
 ##################################################
 # Physics simulation #############################
 ##################################################
