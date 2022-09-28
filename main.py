@@ -80,7 +80,7 @@ class Sim:
     @staticmethod
     def mu(speed):
         """Vypočítá součinitel adheze pro danou rychlost pohybu"""
-        return (9000 / (speed * 3.6 + 42) + 116) * 1e-3
+        return (9000 / (abs(speed) * 3.6 + 42) + 116) * 1e-3
 
     def __init__(self, controller):
         self.controller = controller
