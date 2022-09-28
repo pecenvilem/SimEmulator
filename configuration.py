@@ -34,41 +34,11 @@ DATABASE_CREDENTIALS_FILE = ".\\secrets\\database\\local_mysqlwb_2022-04-01.json
 # connect automatically after startup without prompting the user
 DATABASE_AUTOCONNECT = True
 
-# if for some reason no connection to database is possible, uncomment the following 'BALISES' placeholder
+# if for some reason no connection to database is possible, import the 'BALISES' list from 'default_balises.py'
 # it will be then used instead of any loaded data;
 # if the connection should be performed, 'BALISES' must be set to []
-
 BALISES = []
-# BALISES = [
-#     {'position': 400.0,
-#      'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 1, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 402.5,
-#      'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 1, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 1900.0,
-#      'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 2, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 1902.5,
-#      'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 2, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 3400.0,
-#      'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 3, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 3402.5,
-#      'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 3, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 4900.0,
-#      'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 4, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 4902.5,
-#      'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 4, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 6400.0,
-#      'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 5, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 6402.5,
-#      'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 5, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 7900.0,
-#      'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 6, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 7902.5,
-#      'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 6, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 9402.5,
-#      'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 1, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 7, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-#     {'position': 9400.0,
-#      'telegram': '{"Q_UPDOWN": 1, "M_VERSION": 16, "Q_MEDIA": 0, "N_PIG": 0, "N_TOTAL": 1, "M_DUP": 0, "M_MCOUNT": 0, "NID_C": 0, "NID_BG": 7, "Q_LINK": 0, "End of Information": {"NID_PACKET": 255}}'},
-# ]
+# from default_balises import BALISES
 
 # netElement id that the SQL balise_query for fetching balise data is based upon
 # STARTING_NET_ELEMENT = "9f5aea90-d268-466e-8b9c-032c4183a8d3"
