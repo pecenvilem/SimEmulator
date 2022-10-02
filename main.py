@@ -628,6 +628,7 @@ class MqttComm(Comm):
                     displacement = self.controller.comm_variables["DISPLACEMENT"].get()
                     counter = fixedint.FixedInt(width=27, signed=False)
                     odo = counter(int(displacement * 100))
+                    direction = np.sign(self.controller.comm_variables["SPEED"].get())
                     data = json.dumps(
                         {
                             "NID_MESSAGE": 481,
@@ -646,7 +647,7 @@ class MqttComm(Comm):
                             "DL_DOUBTUNDER": int(self.controller.comm_variables["UNDERREADING"].get()),
                             "V_DOUBTPOS ": 0,  # !!! PLACEHOLDER
                             "V_DOUBTNEG": 0,  # !!! PLACEHOLDER
-                            "Q_DIRECTION": np.sign(self.controller.comm_variables["SPEED"].get())
+                            "Q_DIRECTION": direction if direction != -1 else 2,
                         }
                     )
                     self.client.publish("odo/evc", data)
