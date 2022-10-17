@@ -21,7 +21,7 @@ import json
 
 DIR = os.getcwd()
 IMG = os.path.join(DIR, "img")
-MAIN_ICON = os.path.join(IMG, "dsfd.ico")
+MAIN_ICON = os.path.join(IMG, "dsfd.gif")
 COMM_CONFIG = os.path.join(DIR, "comm_config.json")
 HJP = os.path.join(IMG, "hjp")
 
@@ -751,7 +751,9 @@ class Emulator(tk.Tk):
 
         tk.Tk.__init__(self, *args, **kwargs)
         self.title("SimEmulator")
-        # self.iconbitmap(default=MAIN_ICON)
+        img = tk.PhotoImage(file=MAIN_ICON)
+        # noinspection SpellCheckingInspection
+        self.call('wm', 'iconphoto', self._w, img)
         self.protocol("WM_DELETE_WINDOW", self.close)
 
         self.grid_rowconfigure(0, weight=1)
