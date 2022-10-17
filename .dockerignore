@@ -1,10 +1,3 @@
 venv/*
 .idea/*
-secrets/*
-!secrets/database
-secrets/database/*
-!secrets/database/template.json
-!secrets/mqtt
-secrets/mqtt/*
-!secrets/mqtt/template.json
 doc/*
