@@ -3,7 +3,7 @@
 ##################################################
 
 # connection credentials
-MQTT_CREDENTIALS_FILE = ".\\secrets\\mqtt\\local.json"
+MQTT_CREDENTIALS_FILE = "./secrets/mqtt/local.json"
 
 # number of communication loop runs per second - internal delay after each loop is set accordingly
 MQTT_LOOP_FREQUENCY = 1000
@@ -29,7 +29,7 @@ BTM_INTERVAL = 0
 
 # database credentials
 # noinspection SpellCheckingInspection
-DATABASE_CREDENTIALS_FILE = ".\\secrets\\database\\local_mysqlwb_2022-04-01.json"
+DATABASE_CREDENTIALS_FILE = "./secrets/database/local_mysqlwb_2022-04-01.json"
 
 # connect automatically after startup without prompting the user
 DATABASE_AUTOCONNECT = True
