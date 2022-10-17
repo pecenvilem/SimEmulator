@@ -14,12 +14,5 @@ COPY . /app
 
 EXPOSE 5900
 
-#MQTT
-EXPOSE 1883
-
-#MYSQL
-EXPOSE 3306
-
-#CMD ["x11vnc", "-create", "-forever"]
 CMD ["/app/run.sh"]
 #CMD ["python"]
