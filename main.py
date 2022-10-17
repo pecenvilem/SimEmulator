@@ -751,7 +751,7 @@ class Emulator(tk.Tk):
 
         tk.Tk.__init__(self, *args, **kwargs)
         self.title("SimEmulator")
-        self.iconbitmap(default=MAIN_ICON)
+        # self.iconbitmap(default=MAIN_ICON)
         self.protocol("WM_DELETE_WINDOW", self.close)
 
         self.grid_rowconfigure(0, weight=1)
