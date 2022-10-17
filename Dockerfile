@@ -15,4 +15,3 @@ COPY . /app
 EXPOSE 5900
 
 CMD ["/app/run.sh"]
-#CMD ["python"]
