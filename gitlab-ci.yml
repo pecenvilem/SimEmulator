@@ -1,0 +1,11 @@
+stages:
+  - create_image
+
+create_image:
+  stage: create_image
+  image: $CI_REGISTRY/ict/images/buildah:v1
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+  script:
+    - buildah build --squash --tag $IMAGE_TAG -f Dockerfile
+    - buildah push $IMAGE_TAG
