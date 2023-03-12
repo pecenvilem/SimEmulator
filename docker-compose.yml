@@ -12,9 +12,7 @@ services:
       - ./configuration.py:/app/configuration.py
     environment:
       DATABASE_CREDENTIALS_FILE: ./secrets/database/docker_compose.json
-#      DATABASE_CREDENTIALS_FILE: ./secrets/database/docker.json
       MQTT_CREDENTIALS_FILE: ./secrets/mqtt/docker_compose.json
-#      MQTT_CREDENTIALS_FILE: ./secrets/mqtt/docker.json
     depends_on:
       mqtt:
           condition: service_started
