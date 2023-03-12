@@ -8,7 +8,7 @@ import mysql
 
 from trackmap import load_credentials
 
-file_name = ".\\db\\2022-04-01\\balises.json"
+file_name = "..\\2022-03-11\\balises.json"
 
 
 def insert_headers(balise_list):
@@ -98,13 +98,12 @@ def to_etcs(telegram: Dict, known_variables):
     return f"{output:x}"
 
 
-data = load_infra_data(".\\db\\2022-04-01\\utils\\infra.csv")
+data = load_infra_data("..\\2023-03-11\\utils\\infra.csv")
 variables = []
-os.chdir(".\\etcs_language\\v230d\\variables")
-for file in os.listdir():
-    with open(file, "rt") as f:
+rel_path = "..\\..\\etcs_language\\v230d\\variables"
+for file in os.listdir(rel_path):
+    with open(os.path.join(rel_path, file), "rt") as f:
         variables.extend(json.load(f))
-os.chdir(".\\..\\..\\..")
 
 
 with open(file_name, "rt") as f:
@@ -124,7 +123,7 @@ for i, content in enumerate(balises):
 with open(file_name, "wt") as f:
     json.dump(balises, f, indent=4)
 
-CREDENTIALS_FILE = ".\\secrets\\database\\local_2022-04-01.json"
+CREDENTIALS_FILE = "..\\..\\secrets\\database\\local_via_docker_2022-04-01.json"
 credentials = load_credentials(CREDENTIALS_FILE)
 
 
