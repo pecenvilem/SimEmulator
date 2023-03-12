@@ -5,7 +5,9 @@ secrets/*
 !secrets/database
 secrets/database/*
 !secrets/database/template.json
+!secrets/database/docker_compose.json
 !secrets/mqtt
 secrets/mqtt/*
 !secrets/mqtt/template.json
+!secrets/mqtt/docker_compose.json
 doc/*

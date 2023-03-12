@@ -1,9 +1,13 @@
 ##################################################
 # MQTT ###########################################
 ##################################################
+import os
 
 # connection credentials
-MQTT_CREDENTIALS_FILE = "./secrets/mqtt/docker.json"
+MQTT_CREDENTIALS_FILE = os.environ.get(
+    "MQTT_CREDENTIALS_FILE",
+    "./secrets/mqtt/docker.json"
+)
 
 # number of communication loop runs per second - internal delay after each loop is set accordingly
 MQTT_LOOP_FREQUENCY = 1000
@@ -29,7 +33,10 @@ BTM_INTERVAL = 0
 
 # database credentials
 # noinspection SpellCheckingInspection
-DATABASE_CREDENTIALS_FILE = "./secrets/database/docker.json"
+DATABASE_CREDENTIALS_FILE = os.environ.get(
+    "DATABASE_CREDENTIALS_FILE",
+    "./secrets/database/docker.json"
+)
 
 # connect automatically after startup without prompting the user
 DATABASE_AUTOCONNECT = True
