@@ -616,22 +616,26 @@ class MqttComm(Comm):
                 print("Disregarding missing 'DL_DOUBTUNDER' field in 'ODOMETER INITIALIZATION' message!")
 
     def run(self):
-        from configuration import SUBSET_COMMUNICATION_FORMAT
+        from configuration import (
+            SUBSET_COMMUNICATION_FORMAT, ODO_NID_MESSAGE, TIU_NID_MESSAGE, BTM_NID_MESSAGE, WAIT_CONFIG)
+
         while self._run:
             if not self.paused:
                 self.client.loop(timeout=1 / self.loop_frequency)
 
                 # ODO
                 # TODO: change according to the EEIG : 97E2675B (ODOMETER FFFIS)
-                if ((time.time() >= self.last_transmissions["ODO"] + self.intervals["ODO"] or self.tx_requests["ODO"])
-                        and self.controller.comm_variables["ODO_START_UP"].get()):
-                    displacement = self.controller.comm_variables["DISPLACEMENT"].get()
-                    counter = fixedint.FixedInt(width=27, signed=False)
-                    odo = counter(int(displacement * 100))
-                    direction = np.sign(self.controller.comm_variables["SPEED"].get())
-                    data = json.dumps(
-                        {
-                            "NID_MESSAGE": 481,
+                if time.time() >= self.last_transmissions["ODO"] + self.intervals["ODO"] or self.tx_requests["ODO"]:
+                    if self.controller.comm_variables["ODO_START_UP"].get() or not WAIT_CONFIG:
+                        displacement = self.controller.comm_variables["DISPLACEMENT"].get()
+                        counter = fixedint.FixedInt(width=27, signed=False)
+                        odo = counter(int(displacement * 100))
+                        direction = np.sign(self.controller.comm_variables["SPEED"].get())
+                        if ODO_NID_MESSAGE is not None:
+                            message = {"NID_MESSAGE": ODO_NID_MESSAGE}
+                        else:
+                            message = dict()
+                        message.update({
                             "Q_CONTROL": 0b100_000_000,
                             "D_TRAIN": int(odo),
 
@@ -648,23 +652,25 @@ class MqttComm(Comm):
                             "V_DOUBTPOS ": 0,  # !!! PLACEHOLDER
                             "V_DOUBTNEG": 0,  # !!! PLACEHOLDER
                             "Q_DIRECTION": direction if direction != -1 else 2,
-                        }
-                    )
-                    self.client.publish("odo/evc", data)
-                    self.last_transmissions["ODO"] = time.time()
-                    if self.tx_requests["ODO"]:
-                        self.tx_requests["ODO"] -= 1
+                        })
+                        data = json.dumps(message)
+                        self.client.publish("odo/evc", data)
+                        self.last_transmissions["ODO"] = time.time()
+                        if self.tx_requests["ODO"]:
+                            self.tx_requests["ODO"] -= 1
 
                 # TIU
                 if time.time() >= self.last_transmissions["TIU"] + self.intervals["TIU"] or self.tx_requests["TIU"]:
-                    data = json.dumps(
-                        {
-                            "NID_MESSAGE": 602,
-                            "battery_power": self.controller.comm_variables["BATTERY"].get(),
-                            "cab": self.controller.comm_variables["CONTROL_SWITCH"].get(),
-                            "train_direction": self.controller.comm_variables["DIRECTION_LEAVER"].get()
-                        }
-                    )
+                    if TIU_NID_MESSAGE is not None:
+                        message = {"NID_MESSAGE": TIU_NID_MESSAGE}
+                    else:
+                        message = dict()
+                    message.update({
+                        "battery_power": self.controller.comm_variables["BATTERY"].get(),
+                        "cab": self.controller.comm_variables["CONTROL_SWITCH"].get(),
+                        "train_direction": self.controller.comm_variables["DIRECTION_LEAVER"].get()
+                    })
+                    data = json.dumps(message)
                     self.client.publish("tiu/evc", data)
                     self.last_transmissions["TIU"] = time.time()
                     if self.tx_requests["TIU"]:

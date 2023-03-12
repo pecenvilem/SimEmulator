@@ -27,6 +27,12 @@ ODO_INTERVAL = 100  # ms - i.e. 10 Hz !!! don't set negative intervals - NOT COM
 TIU_INTERVAL = 0
 BTM_INTERVAL = 0
 
+# NID_MESSAGE variables to add to messages sent to EVC from ODO, TIU and BTM
+# Set to None, if variable should not be added
+ODO_NID_MESSAGE = 481
+TIU_NID_MESSAGE = 602
+BTM_NID_MESSAGE = 501
+
 ##################################################
 # DATABASE CONNECTION ############################
 ##################################################
@@ -60,6 +66,11 @@ QUERY_FILE = "db/2022-04-01/utils/balises_2022-04-01.sql"
 # STARTING_OFFSET = 402.6  # m
 STARTING_OFFSET = 0  # m
 
+# select, whether telegram decoding should happen in BTM
+# if True: send balise content to EVC via MQTT as JSON strings
+# if False: send as HEX string without decoding
+DECODE_TELEGRAMS = True
+
 ##################################################
 # ETCS component configuration ###################
 ##################################################
@@ -74,6 +85,10 @@ DEFAULT_OVERREADING = 100
 
 # use communication format according to EEIG: 97E2675B and SRS 026 - 7
 SUBSET_COMMUNICATION_FORMAT = False
+
+# wait for reception of message STATUS REQUEST AND CONFIGURATION (M_PACKETUSER=1 - NID_MESSAGE=401)
+# before starting to send ODO measurements
+WAIT_CONFIG = False
 
 ##################################################
 # Physics simulation #############################

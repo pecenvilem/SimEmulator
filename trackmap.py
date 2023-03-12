@@ -128,6 +128,7 @@ class TrackMap(tk.Frame):
                 )
                 return
             else:
+                from configuration import DECODE_TELEGRAMS, BTM_NID_MESSAGE
                 data = cursor.fetchall()
                 self.balises = []
                 total_dist = 0
@@ -140,7 +141,31 @@ class TrackMap(tk.Frame):
                             total_dist += prev_length
                     if balise_id is not None:
                         dist = total_dist + intrinsic * length + delta
-                        self.balises.append({"position": dist - STARTING_OFFSET, "telegram": json.dumps(telegram)})
+                        if BTM_NID_MESSAGE is not None:
+                            message = {"NID_MESSAGE": BTM_NID_MESSAGE}
+                        else:
+                            message = dict()
+                        if DECODE_TELEGRAMS:
+                            telegram = int(telegram, base=16)
+                            i = len(f"{telegram:b}")
+                            message.update({
+                                "Q_UPDOWN": (telegram & (1 << (i - 1))) >> (i - 1),  # 1 bit [1]
+                                "M_VERSION": (telegram & (127 << (i - 8))) >> (i - 8),  # 7 bits [2-8]
+                                "Q_MEDIA": (telegram & (1 << (i - 9))) >> (i - 9),  # 1 bit [9],
+                                "N_PIG": (telegram & (7 << (i - 12))) >> (i - 12),  # 3 bits [10-12],
+                                "N_TOTAL": (telegram & (7 << (i - 15))) >> (i - 15),  # 3 bits [13-15],
+                                "M_DUP": (telegram & (3 << (i - 17))) >> (i - 17),  # 2 bits [16-17],
+                                "M_MCOUNT": (telegram & (255 << (i - 25))) >> (i - 25),  # 8 bits [18-25],
+                                "NID_C": (telegram & (1023 << (i - 35))) >> (i - 35),  # 10 bits [26-35],
+                                "NID_BG": ((telegram & (16383 << (i - 49))) >> (i - 49)),  # 14 bits [36-49],
+                                "Q_LINK": (telegram & (1 << (i - 50))) >> (i - 50),  # 1 bit [50],
+                                "End of Information": {
+                                    "NID_PACKET": 255  # 8 more bits [51-58]
+                                }
+                            })
+                        else:
+                            message.update({"telegram": telegram})
+                        self.balises.append({"position": dist - STARTING_OFFSET, "telegram": json.dumps(message)})
                 if not DATABASE_AUTOCONNECT:
                     msb.showinfo(
                         "Načtení dat",
