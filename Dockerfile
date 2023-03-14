@@ -14,4 +14,4 @@ COPY . /app
 
 EXPOSE 5900
 
-ENTRYPOINT sh /app/utils/run.sh
+CMD ["sh", "/app/utils/run.sh"]
