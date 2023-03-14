@@ -10,7 +10,7 @@ services:
       - ./secrets/database:/app/secrets/database
       - ./secrets/mqtt:/app/secrets/mqtt
       - ./configuration.py:/app/configuration.py
-      - ./utils/run.sh:/app/utils/run.sh
+#      - ./utils/run.sh:/app/utils/run.sh
     environment:
       DATABASE_CREDENTIALS_FILE: ./secrets/database/docker_compose.json
       MQTT_CREDENTIALS_FILE: ./secrets/mqtt/docker_compose.json
