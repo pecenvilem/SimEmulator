@@ -149,8 +149,7 @@ class Sim:
         traction = "-"
         edb = "hold"
         o_s = 9.81 * self.mass * np.sin(np.arctan(self.slope / 1000))  # N
-        relative_effort = 0
-        # noinspection PyUnusedLocal
+        slip = False
         speed = 0
 
         while self._run:
