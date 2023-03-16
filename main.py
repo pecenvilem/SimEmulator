@@ -151,6 +151,7 @@ class Sim:
         o_s = 9.81 * self.mass * np.sin(np.arctan(self.slope / 1000))  # N
         slip = False
         speed = 0
+        relative_effort = 0
 
         while self._run:
             dt = time.time() - t0
