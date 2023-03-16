@@ -1,6 +1,8 @@
-mysql-connector-python==8.0.30
-numpy==1.23.3
+bpyutils==0.5.8
+fixedint==0.2.0
+mysql-connector-python==8.0.32
+numpy==1.24.2
 paho-mqtt==1.6.1
-Pillow==9.2.0
+Pillow==9.4.0
+protobuf==4.22.1
 pyserial==3.5
-fixedint~=0.2.0
