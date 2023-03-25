@@ -12,7 +12,6 @@ services:
       - ./secrets/database:/app/secrets/database
       - ./secrets/mqtt:/app/secrets/mqtt
       - ./configuration.py:/app/configuration.py
-#      - ./utils/run.sh:/app/utils/run.sh
     environment:
       DATABASE_CREDENTIALS_FILE: ./secrets/database/docker_compose.json
       MQTT_CREDENTIALS_FILE: ./secrets/mqtt/docker_compose.json
@@ -36,7 +35,7 @@ services:
   database:
     image: mysql
     volumes:
-      - ./db/2023-03-11/2023-03-11.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./newdb.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       # noinspection SpellCheckingInspection
       MYSQL_DATABASE: 'infradb'
