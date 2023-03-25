@@ -4,3 +4,4 @@ Xvfb $DISPLAY -screen 0 1920x1080x16 &
 fluxbox -display $DISPLAY &
 x11vnc -display $DISPLAY -nevershared -forever &
 python main.py
+rm /tmp/.X1-lock
