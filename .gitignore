@@ -11,3 +11,4 @@ secrets/mqtt/*
 !secrets/mqtt/template.json
 !secrets/mqtt/docker_compose.json
 doc/*
+__pycache__/
