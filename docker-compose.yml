@@ -35,7 +35,7 @@ services:
   database:
     image: mysql
     volumes:
-      - ./newdb.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db/2023-03-11/2023-03-11.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       # noinspection SpellCheckingInspection
       MYSQL_DATABASE: 'infradb'
