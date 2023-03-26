@@ -11,7 +11,7 @@ COPY ./requirements.txt /app
 RUN pip install -r requirements.txt
 
 COPY . /app
-RUN find /app -name '*.sh' |xargs dos2unix
+RUN find /app -name '*.sh' | xargs dos2unix
 
 EXPOSE 5900
 

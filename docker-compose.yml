@@ -2,15 +2,16 @@ version: '3.8'
 
 services:
   app:
-    image: sim-emulator
+    # Using image from GitLab container registry - latest master build
+    image: gitlab.fit.cvut.cz:5000/etcs/simemulator:master
     ports:
       - "5900:5900"
     working_dir: /app
+    restart: on-failure
     volumes:
       - ./secrets/database:/app/secrets/database
       - ./secrets/mqtt:/app/secrets/mqtt
       - ./configuration.py:/app/configuration.py
-      - ./utils/run.sh:/app/utils/run.sh
     environment:
       DATABASE_CREDENTIALS_FILE: ./secrets/database/docker_compose.json
       MQTT_CREDENTIALS_FILE: ./secrets/mqtt/docker_compose.json
@@ -43,9 +44,8 @@ services:
       # <Port exposed> : < MySQL Port running inside container>
       - '3306:3306'
     healthcheck:
-      # noinspection SpellCheckingInspection
       test: ["CMD", "mysqladmin", "ping", "-proot", "-h", "database"]
-      interval: 20s
-      timeout: 20s
-      retries: 3
-      start_period: 30s
+      interval: 15s
+      timeout: 15s
+      retries: 10
+      start_period: 10s
