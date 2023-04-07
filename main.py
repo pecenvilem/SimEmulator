@@ -649,7 +649,7 @@ class MqttComm(Comm):
                             "NID_BG": 16383,  # !!! PLACEHOLDER - unknown (SRS 026 v360 7.5.1.85)
                             "DL_DOUBTOVER": int(self.controller.comm_variables["OVERREADING"].get()),
                             "DL_DOUBTUNDER": int(self.controller.comm_variables["UNDERREADING"].get()),
-                            "V_DOUBTPOS ": 0,  # !!! PLACEHOLDER
+                            "V_DOUBTPOS": 0,  # !!! PLACEHOLDER
                             "V_DOUBTNEG": 0,  # !!! PLACEHOLDER
                             "Q_DIRECTION": direction if direction != -1 else 2,
                         })
