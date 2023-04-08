@@ -12,7 +12,6 @@ services:
       - ./secrets/database:/app/secrets/database
       - ./secrets/mqtt:/app/secrets/mqtt
       - ./configuration.py:/app/configuration.py
-    network_mode: "host"
     environment:
       DATABASE_CREDENTIALS_FILE: ./secrets/database/config.json
       MQTT_CREDENTIALS_FILE: ./secrets/mqtt/config.json
