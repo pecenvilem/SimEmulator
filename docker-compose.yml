@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    # Using image from GitLab container registry - latest master build
+    # Using image from GitLab container registry - the latest master build
     image: gitlab.fit.cvut.cz:5000/etcs/simemulator:master
     ports:
       - "5900:5900"
@@ -12,9 +12,10 @@ services:
       - ./secrets/database:/app/secrets/database
       - ./secrets/mqtt:/app/secrets/mqtt
       - ./configuration.py:/app/configuration.py
+    network_mode: "host"
     environment:
-      DATABASE_CREDENTIALS_FILE: ./secrets/database/docker_compose.json
-      MQTT_CREDENTIALS_FILE: ./secrets/mqtt/docker_compose.json
+      DATABASE_CREDENTIALS_FILE: ./secrets/database/config.json
+      MQTT_CREDENTIALS_FILE: ./secrets/mqtt/config.json
     depends_on:
       mqtt:
           condition: service_started
