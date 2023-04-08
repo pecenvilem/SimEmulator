@@ -5,10 +5,10 @@ secrets/*
 !secrets/database
 secrets/database/*
 !secrets/database/template.json
-!secrets/database/docker_compose.json
+!secrets/database/config.json
 !secrets/mqtt
 secrets/mqtt/*
 !secrets/mqtt/template.json
-!secrets/mqtt/docker_compose.json
+!secrets/mqtt/config.json
 doc/*
 __pycache__/
