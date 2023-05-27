@@ -18,6 +18,7 @@ MQTT_AUTOCONNECT = True
 # MQTT topic designated for incoming messages (only messages from EVC are expected)
 TIU_SUBSCRIBE_TOPIC = "+/tiu/#"
 ODDO_SUBSCRIBE_TOPIC = "+/odo/#"
+CONTROLS_SUBSCRIBE_TOPIC = "CAN/#"
 
 # intervals for transmitting values
 # positive numbers - interval in milliseconds [ms]

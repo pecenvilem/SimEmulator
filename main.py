@@ -554,10 +554,13 @@ class MqttComm(Comm):
         self.client.connect(self.host, self.port)
         from configuration import TIU_SUBSCRIBE_TOPIC
         from configuration import ODDO_SUBSCRIBE_TOPIC
+        from configuration import CONTROLS_SUBSCRIBE_TOPIC
         self.client.subscribe(TIU_SUBSCRIBE_TOPIC)
         self.client.subscribe(ODDO_SUBSCRIBE_TOPIC)
+        self.client.subscribe(CONTROLS_SUBSCRIBE_TOPIC)
         self.client.message_callback_add(TIU_SUBSCRIBE_TOPIC, self.tiu_message_receive)
         self.client.message_callback_add(ODDO_SUBSCRIBE_TOPIC, self.oddo_message_receive)
+        self.client.message_callback_add(CONTROLS_SUBSCRIBE_TOPIC, self.controls_message_receive)
         self.client.on_disconnect = self.on_disconnect
         self.thread = threading.Thread(target=self.run, daemon=True)
         self._run = True
@@ -571,8 +574,10 @@ class MqttComm(Comm):
             self.client.reconnect()
             from configuration import TIU_SUBSCRIBE_TOPIC
             from configuration import ODDO_SUBSCRIBE_TOPIC
+            from configuration import CONTROLS_SUBSCRIBE_TOPIC
             self.client.subscribe(TIU_SUBSCRIBE_TOPIC)
             self.client.subscribe(ODDO_SUBSCRIBE_TOPIC)
+            self.client.subscribe(CONTROLS_SUBSCRIBE_TOPIC)
 
     # noinspection PyUnusedLocal
     def tiu_message_receive(self, client, userdata, message):
@@ -595,6 +600,10 @@ class MqttComm(Comm):
         except KeyError:
             print(f"Invalid data received from EVC with topic: {message.topic}!")
 
+    def controls_message_receive(self, client, userdata, message):
+        for variable, value in self.decode_controls(message).items():
+            self.controller.comm_variables[variable].set(value)
+
     def load_control_encoding(self, filename):
         with open(filename, "rt", encoding="utf-8") as f:
             controls = json.load(f)
@@ -604,6 +613,19 @@ class MqttComm(Comm):
                         can = self.control_encodings.setdefault(encoding["can"], {})
                         base = can.setdefault(encoding["base"], [])
                         base.append((control["variable"], position["variable_value"], int(encoding["mask"], 16), int(encoding["value"], 16)))
+
+    def decode_controls(self, message) -> dict:
+        result = {}
+        # CAN / can_number / base
+        _, can, base = message.topic.split("/")
+        try:
+            for (variable, variable_value, mask, value) in self.control_encodings[can][base]:
+                data = int(message.payload, base=16)
+                if data & mask == value:
+                    result[variable] = variable_value
+        except KeyError:
+            return result
+        return result
 
     def oddo_config(self, data: dict):
         try:
