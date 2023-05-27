@@ -72,6 +72,14 @@ STARTING_OFFSET = 0  # m
 DECODE_TELEGRAMS = True
 
 ##################################################
+# SimControls ####################################
+##################################################
+# file to load simulator physical controls position encoding from
+# encodings are used to decode MQTT messages from CANBridge
+
+ENCODINGS_FILE = "controls/metro.json"
+
+##################################################
 # ETCS component configuration ###################
 ##################################################
 

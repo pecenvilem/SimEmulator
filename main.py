@@ -529,6 +529,9 @@ class MqttComm(Comm):
             "TIU": abs(TIU_INTERVAL) / 1000 if TIU_INTERVAL != 0 else float("inf"),
             "BTM": abs(BTM_INTERVAL) / 1000 if BTM_INTERVAL != 0 else float("inf")
         }
+        self.control_encodings = dict()
+        from configuration import ENCODINGS_FILE
+        self.load_control_encoding(ENCODINGS_FILE)
 
     def request_transmission(self, key: str):
         self.tx_requests[key] += 1
@@ -591,6 +594,16 @@ class MqttComm(Comm):
             responses[str(data["NID_MESSAGE"])](data)
         except KeyError:
             print(f"Invalid data received from EVC with topic: {message.topic}!")
+
+    def load_control_encoding(self, filename):
+        with open(filename, "rt", encoding="utf-8") as f:
+            controls = json.load(f)
+            for control in controls:
+                for position in control["positions"]:
+                    for encoding in position["encodings"]:
+                        can = self.control_encodings.setdefault(encoding["can"], {})
+                        base = can.setdefault(encoding["base"], [])
+                        base.append((control["variable"], position["variable_value"], int(encoding["mask"], 16), int(encoding["value"], 16)))
 
     def oddo_config(self, data: dict):
         try:
