@@ -159,9 +159,9 @@ class TrackMap(tk.Frame):
                                 "NID_C": (telegram & (1023 << (i - 35))) >> (i - 35),  # 10 bits [26-35],
                                 "NID_BG": ((telegram & (16383 << (i - 49))) >> (i - 49)),  # 14 bits [36-49],
                                 "Q_LINK": (telegram & (1 << (i - 50))) >> (i - 50),  # 1 bit [50],
-                                "End of Information": {
+                                "End_Of_Information": [{
                                     "NID_PACKET": 255  # 8 more bits [51-58]
-                                }
+                                }]
                             })
                         else:
                             message.update({"telegram": telegram})
