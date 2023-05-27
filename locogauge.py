@@ -658,9 +658,8 @@ class RotarySwitch(Switch):
             [80 * self.q, -12 * self.q, 1],
             [-45 * self.q, -12 * self.q, 1]
         ])
-        for pos in self.notches:
-            pos.position %= 360
         for notch in self.notches:
+            notch.position %= 360
             x, y = np.sin(np.deg2rad(notch.position)) * self.q * 85, -np.cos(np.deg2rad(notch.position)) * self.q * 85
             x, y = x + self.size / 2, y + self.size / 2
             self.canvas.create_text(x, y, text=notch.label, font=self.label_font)
