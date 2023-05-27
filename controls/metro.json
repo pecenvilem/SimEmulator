@@ -1,0 +1,191 @@
+[
+  {
+    "name": "HJP",
+    "description": "Hlavní jízdní páka",
+    "variable": "DRIVING_LEAVER",
+    "positions": [
+      {
+        "label": "R",
+        "description": "Rychlobrzda",
+        "variable_value": "0",
+        "encodings": []
+      },
+      {
+        "label": "BP",
+        "description": "Brzda pneumatická",
+        "variable_value": 1,
+        "encodings": [
+          {
+            "can": "0",
+            "base": "0",
+            "mask": "0xff00000000000000",
+            "value": "0x7f00000000000000"
+          }
+        ]
+      },
+      {
+        "label": "BE",
+        "description": "Brzda elektrodynamická",
+        "variable_value": 2,
+        "encodings": []
+      },
+      {
+        "label": "V",
+        "description": "Výběh",
+        "variable_value": 3,
+        "encodings": [
+          {
+            "can": "0",
+            "base": "0",
+            "mask": "0xff00000000000000",
+            "value": "0xdb00000000000000"
+          },
+          {
+            "can": "0",
+            "base": "0",
+            "mask": "0xff00000000000000",
+            "value": "0x7700000000000000"
+          }
+        ]
+      },
+      {
+        "label": "J",
+        "description": "Jízda",
+        "variable_value": 4,
+        "encodings": [
+          {
+            "can": "0",
+            "base": "0",
+            "mask": "0xff00000000000000",
+            "value": "0xbd00000000000000"
+          }
+        ]
+      },
+      {
+        "label": "S",
+        "description": "Souhlas",
+        "variable_value": 5,
+        "encodings": [
+          {
+            "can": "0",
+            "base": "0",
+            "mask": "0xff00000000000000",
+            "value": "0xbe00000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "SJ",
+    "description": "Směr jízdy",
+    "variable": "DIRECTION_LEAVER",
+    "positions": [
+      {
+        "label": "Z",
+        "description": "Zpět",
+        "variable_value": 0,
+        "encodings": [
+          {
+            "can": "0",
+            "base": "2",
+            "mask": "0x0000000000008000",
+            "value": "0x0000000000008000"
+          }
+        ]
+      },
+      {
+        "label": "0",
+        "description": "Nezadán",
+        "variable_value": 2,
+        "encodings": [
+          {
+            "can": "0",
+            "base": "2",
+            "mask": "0x0000000000000100",
+            "value": "0x0000000000000100"
+          }
+        ]
+      },
+      {
+        "label": "P",
+        "description": "Vpřed",
+        "variable_value": 1,
+        "encodings": [
+          {
+            "can": "0",
+            "base": "2",
+            "mask": "0x0000000000000200",
+            "value": "0x0000000000000200"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "BAT",
+    "description": "Baterie",
+    "variable": "BATTERY",
+    "positions": [
+      {
+        "label": "BAT-Z",
+        "description": "Zapnout",
+        "variable_value": 1,
+        "encodings": [
+          {
+            "can": "0",
+            "base": "3",
+            "mask": "0x0000100000000000",
+            "value": "0x0000100000000000"
+          }
+        ]
+      },
+      {
+        "label": "BAT-Z",
+        "description": "Vypnout",
+        "variable_value": 0,
+        "encodings": [
+          {
+            "can": "0",
+            "base": "3",
+            "mask": "0x0000200000000000",
+            "value": "0x0000200000000000"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "SR",
+    "description": "Spínač řízení",
+    "variable": "CONTROL_SWITCH",
+    "positions": [
+      {
+        "label": "V",
+        "description": "Vypnuto",
+        "variable_value": 0,
+        "encodings": [
+          {
+            "can": "0",
+            "base": "2",
+            "mask": "0x0000000000002000",
+            "value": "0x0000000000002000"
+          }
+        ]
+      },
+      {
+        "label": "NK",
+        "description": "Zapnuto",
+        "variable_value": 1,
+        "encodings": [
+          {
+            "can": "0",
+            "base": "2",
+            "mask": "0x0000000000004000",
+            "value": "0x0000000000004000"
+          }
+        ]
+      }
+    ]
+  }
+]

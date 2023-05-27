@@ -18,6 +18,7 @@ MQTT_AUTOCONNECT = True
 # MQTT topic designated for incoming messages (only messages from EVC are expected)
 TIU_SUBSCRIBE_TOPIC = "+/tiu/#"
 ODDO_SUBSCRIBE_TOPIC = "+/odo/#"
+CONTROLS_SUBSCRIBE_TOPIC = "CAN/#"
 
 # intervals for transmitting values
 # positive numbers - interval in milliseconds [ms]
@@ -70,6 +71,14 @@ STARTING_OFFSET = 0  # m
 # if True: send balise content to EVC via MQTT as JSON strings
 # if False: send as HEX string without decoding
 DECODE_TELEGRAMS = True
+
+##################################################
+# SimControls ####################################
+##################################################
+# file to load simulator physical controls position encoding from
+# encodings are used to decode MQTT messages from CANBridge
+
+ENCODINGS_FILE = "controls/metro.json"
 
 ##################################################
 # ETCS component configuration ###################
