@@ -992,7 +992,8 @@ class MainPage(tk.Frame):
         RotarySwitch(switches,
                      notches=[
                          SwitchPosition(position=0, label="0", value=0),
-                         SwitchPosition(position=90, label="1", value=1)],
+                         SwitchPosition(position=90, label="1", value=1)
+                     ],
                      default=SwitchPosition(position=0, label="0", value=0),
                      block=(90, 360), variable=self.controller.comm_variables["BATTERY"],
                      size=100).grid(row=0, column=0)
