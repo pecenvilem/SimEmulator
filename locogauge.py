@@ -423,6 +423,7 @@ class ControlLeaver(tk.Frame):
         except IndexError as e:
             raise ValueError("Path to image resources for ControllLeaver not given!") from e
         self.variable = kwargs.pop("variable", tk.IntVar())
+        self.variable_trace_id = self.variable.trace("w", lambda *_: self.set(self.variable.get()))
         super().__init__(parent, *args, **kwargs)
         self.souhlas = tk.PhotoImage(file=os.path.join(path, "souhlas.gif"))
         self.jizda = tk.PhotoImage(file=os.path.join(path, "jizda.gif"))
@@ -461,6 +462,10 @@ class ControlLeaver(tk.Frame):
         x1, y1 = (95 - self.leaver_width / 2, position - self.leaver_height / 2)
         x2, y2 = (95 + self.leaver_width / 2, position + self.leaver_height / 2)
         return self.canvas.create_rectangle(x1, y1, x2, y2, fill="black", tag="leaver")
+
+    def set_leaver(self, position):
+        self.canvas.delete("leaver")
+        self.draw_leaver(position)
 
     def mark(self, event):
         self.drag_info["x"] = event.x
@@ -528,11 +533,18 @@ class ControlLeaver(tk.Frame):
         x2, y2 = (95 + self.leaver_width / 2, position + self.leaver_height / 2)
         self.canvas.coords("leaver", x1, y1, x2, y2)
         if self.variable.get() != self.get():
+            self.variable.trace_remove("write", self.variable_trace_id)
             self.variable.set(self.get())
+            self.variable_trace_id = self.variable.trace("w", lambda *_: self.set(self.variable.get()))
         self.after(10, self.move)
 
     def get(self):
         return int((self.leaver_position + 0.1) / 0.2)
+
+    def set(self, value):
+        self.drag_target = value * 0.2
+        self.leaver_position = value * 0.2
+        self.set_leaver(self.leaver_position)
 
 
 @dataclass
@@ -555,6 +567,7 @@ class Switch(ABC, tk.Frame):
         except IndexError:
             raise ValueError("Missing 'notches' in a Switch initializer!")
         self.variable = kwargs.pop("variable", tk.DoubleVar())
+        self.variable_trace_id = self.variable.trace("w", lambda *_: self.set(self.variable.get()))
         self.color = kwargs.pop("color", "black")
         default = kwargs.pop("default", SwitchPosition(position=0, value=0))
         self.position = default.position
@@ -608,6 +621,19 @@ class Switch(ABC, tk.Frame):
         for renderer, element in self.transform(position):
             renderer(*element, fill=self.color, tag="graphic", outline="gray")
 
+    def set_variable_value(self, value):
+        self.variable.trace_remove("write", self.variable_trace_id)
+        self.variable.set(value)
+        self.variable_trace_id = self.variable.trace("w", lambda *_: self.set(self.variable.get()))
+
+    def set(self, value):
+        for notch in self.notches:
+            if notch.value == value:
+                self.notch = notch
+                self.position = notch.position
+                self.draw(self.position)
+                return
+
 
 class RotarySwitch(Switch):
 
@@ -632,9 +658,8 @@ class RotarySwitch(Switch):
             [80 * self.q, -12 * self.q, 1],
             [-45 * self.q, -12 * self.q, 1]
         ])
-        for pos in self.notches:
-            pos.position %= 360
         for notch in self.notches:
+            notch.position %= 360
             x, y = np.sin(np.deg2rad(notch.position)) * self.q * 85, -np.cos(np.deg2rad(notch.position)) * self.q * 85
             x, y = x + self.size / 2, y + self.size / 2
             self.canvas.create_text(x, y, text=notch.label, font=self.label_font)
@@ -674,7 +699,7 @@ class RotarySwitch(Switch):
                     self.position = to if RotarySwitch.in_arc(trg_pos, self.position, to) else trg_pos
         if self.pos2notch(self.position) != self.notch:
             self.notch = self.pos2notch(self.position)
-            self.variable.set(self.notch.value)
+            self.set_variable_value(self.notch.value)
         self.draw(self.position)
 
     def pos2notch(self, position, exclude_momentary=False):
@@ -740,7 +765,7 @@ class LeaverSwitch(Switch):
         self.position = position
         if self.pos2notch(self.position) != self.notch:
             self.notch = self.pos2notch(self.position)
-            self.variable.set(self.notch.value)
+            self.set_variable_value(self.notch.value)
         self.draw(self.position)
 
     def pos2notch(self, position, exclude_momentary=False):
