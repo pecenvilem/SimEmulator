@@ -617,7 +617,7 @@ class MqttComm(Comm):
     def decode_controls(self, message) -> dict:
         result = {}
         # CAN / can_number / base
-        _, can, base = message.topic.split("/")
+        root, can, base, *_ = message.topic.split("/")
         try:
             for (variable, variable_value, mask, value) in self.control_encodings[can][base]:
                 data = int(message.payload, base=16)
