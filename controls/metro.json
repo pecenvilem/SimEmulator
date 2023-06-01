@@ -5,12 +5,6 @@
     "variable": "DRIVING_LEAVER",
     "positions": [
       {
-        "label": "R",
-        "description": "Rychlobrzda",
-        "variable_value": "0",
-        "encodings": []
-      },
-      {
         "label": "BP",
         "description": "Brzda pneumatická",
         "variable_value": 1,
@@ -71,6 +65,19 @@
             "base": "0",
             "mask": "0xff00000000000000",
             "value": "0xbe00000000000000"
+          }
+        ]
+      },
+      {
+        "label": "R",
+        "description": "Rychlobrzda",
+        "variable_value": "0",
+        "encodings": [
+          {
+            "can": "1",
+            "base": "0",
+            "mask": "0x00000f0000000000",
+            "value": "0x00000c0000000000"
           }
         ]
       }
