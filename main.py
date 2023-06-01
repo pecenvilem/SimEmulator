@@ -683,11 +683,11 @@ class MqttComm(Comm):
                             "A_TRAIN": (self.controller.comm_variables["ACCELERATION"].get() * 1000) // 3
                             if SUBSET_COMMUNICATION_FORMAT else self.controller.comm_variables["ACCELERATION"].get(),
 
-                            "NIC_C": 0,  # !!! PLACEHOLDER - not assigned value according to ERA_ERTMS_040001 v 1.33
+                            "NID_C": 0,  # !!! PLACEHOLDER - not assigned value according to ERA_ERTMS_040001 v 1.33
                             "NID_BG": 16383,  # !!! PLACEHOLDER - unknown (SRS 026 v360 7.5.1.85)
                             "DL_DOUBTOVER": int(self.controller.comm_variables["OVERREADING"].get()),
                             "DL_DOUBTUNDER": int(self.controller.comm_variables["UNDERREADING"].get()),
-                            "V_DOUBTPOS ": 0,  # !!! PLACEHOLDER
+                            "V_DOUBTPOS": 0,  # !!! PLACEHOLDER
                             "V_DOUBTNEG": 0,  # !!! PLACEHOLDER
                             "Q_DIRECTION": direction if direction != -1 else 2,
                         })

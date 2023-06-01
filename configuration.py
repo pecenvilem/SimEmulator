@@ -6,7 +6,7 @@ import os
 # connection credentials
 MQTT_CREDENTIALS_FILE = os.environ.get(
     "MQTT_CREDENTIALS_FILE",
-    "./secrets/mqtt/docker_compose.json"
+    "./secrets/mqtt/config.json"
 )
 
 # number of communication loop runs per second - internal delay after each loop is set accordingly
@@ -46,7 +46,7 @@ BTM_NID_MESSAGE = 501
 # noinspection SpellCheckingInspection
 DATABASE_CREDENTIALS_FILE = os.environ.get(
     "DATABASE_CREDENTIALS_FILE",
-    "./secrets/database/docker_compose.json"
+    "./secrets/database/config.json"
 )
 
 # connect automatically after startup without prompting the user
