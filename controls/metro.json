@@ -10,7 +10,7 @@
         "variable_value": 1,
         "encodings": [
           {
-            "can": "0",
+            "can": "1",
             "base": "0",
             "mask": "0xff00000000000000",
             "value": "0x7f00000000000000"
@@ -29,13 +29,13 @@
         "variable_value": 3,
         "encodings": [
           {
-            "can": "0",
+            "can": "1",
             "base": "0",
             "mask": "0xff00000000000000",
             "value": "0xdb00000000000000"
           },
           {
-            "can": "0",
+            "can": "1",
             "base": "0",
             "mask": "0xff00000000000000",
             "value": "0x7700000000000000"
@@ -48,7 +48,7 @@
         "variable_value": 4,
         "encodings": [
           {
-            "can": "0",
+            "can": "1",
             "base": "0",
             "mask": "0xff00000000000000",
             "value": "0xbd00000000000000"
@@ -61,7 +61,7 @@
         "variable_value": 5,
         "encodings": [
           {
-            "can": "0",
+            "can": "1",
             "base": "0",
             "mask": "0xff00000000000000",
             "value": "0xbe00000000000000"
