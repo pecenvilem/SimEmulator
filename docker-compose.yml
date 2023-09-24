@@ -3,7 +3,7 @@ version: '3.8'
 services:
   app:
     # Using image from GitLab container registry - the latest master build
-    image: gitlab.fit.cvut.cz:5000/etcs/simemulator:master
+    image: gitlab.fit.cvut.cz:5050/etcs/simemulator:master
     ports:
       - "5900:5900"
     working_dir: /app
