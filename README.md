@@ -9,7 +9,7 @@ docker compose up
 - Cloned repository
 - Docker installed
 - Right configurations made. See ***secrets/database/config.json*** and ***secrets/mqtt/config.json*** (change *host* value to **localhost** or specific desired IP address)
-- Logged in as a FIT GitLab user. To do that, just enter <br /> `docker login gitlab.fit.cvut.cz:5000` <br /> and enter your FIT GitLab credentials.
+- Logged in as a FIT GitLab user. To do that, just enter <br /> `docker login gitlab.fit.cvut.cz:5050` <br /> and enter your FIT GitLab credentials.
 
 **NOTE: Running Docker on Linux host**  
 Sometimes an error may occur when launching the app via docker-compose on a **Linux host**.
@@ -20,7 +20,7 @@ network_mode: host
 so the **app** service looks something like this:
 ``` yaml
 app:
-    image: gitlab.fit.cvut.cz:5000/etcs/simemulator:master
+    image: gitlab.fit.cvut.cz:5050/etcs/simemulator:master
     network_mode: host
     ...
     ...
