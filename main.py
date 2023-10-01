@@ -529,6 +529,9 @@ class MqttComm(Comm):
             "TIU": abs(TIU_INTERVAL) / 1000 if TIU_INTERVAL != 0 else float("inf"),
             "BTM": abs(BTM_INTERVAL) / 1000 if BTM_INTERVAL != 0 else float("inf")
         }
+        self.control_encodings = dict()
+        from configuration import ENCODINGS_FILE
+        self.load_control_encoding(ENCODINGS_FILE)
 
     def request_transmission(self, key: str):
         self.tx_requests[key] += 1
@@ -551,10 +554,15 @@ class MqttComm(Comm):
         self.client.connect(self.host, self.port)
         from configuration import TIU_SUBSCRIBE_TOPIC
         from configuration import ODDO_SUBSCRIBE_TOPIC
+        from configuration import CONTROLS_SUBSCRIBE_TOPIC_LIST
         self.client.subscribe(TIU_SUBSCRIBE_TOPIC)
         self.client.subscribe(ODDO_SUBSCRIBE_TOPIC)
+        for topic in CONTROLS_SUBSCRIBE_TOPIC_LIST:
+            self.client.subscribe(topic)
         self.client.message_callback_add(TIU_SUBSCRIBE_TOPIC, self.tiu_message_receive)
         self.client.message_callback_add(ODDO_SUBSCRIBE_TOPIC, self.oddo_message_receive)
+        for topic in CONTROLS_SUBSCRIBE_TOPIC_LIST:
+            self.client.message_callback_add(topic, self.controls_message_receive)
         self.client.on_disconnect = self.on_disconnect
         self.thread = threading.Thread(target=self.run, daemon=True)
         self._run = True
@@ -568,8 +576,11 @@ class MqttComm(Comm):
             self.client.reconnect()
             from configuration import TIU_SUBSCRIBE_TOPIC
             from configuration import ODDO_SUBSCRIBE_TOPIC
+            from configuration import CONTROLS_SUBSCRIBE_TOPIC_LIST
             self.client.subscribe(TIU_SUBSCRIBE_TOPIC)
             self.client.subscribe(ODDO_SUBSCRIBE_TOPIC)
+            for topic in CONTROLS_SUBSCRIBE_TOPIC_LIST:
+                self.client.subscribe(topic)
 
     # noinspection PyUnusedLocal
     def tiu_message_receive(self, client, userdata, message):
@@ -591,6 +602,33 @@ class MqttComm(Comm):
             responses[str(data["NID_MESSAGE"])](data)
         except KeyError:
             print(f"Invalid data received from EVC with topic: {message.topic}!")
+
+    def controls_message_receive(self, client, userdata, message):
+        for variable, value in self.decode_controls(message).items():
+            self.controller.comm_variables[variable].set(value)
+
+    def load_control_encoding(self, filename):
+        with open(filename, "rt", encoding="utf-8") as f:
+            controls = json.load(f)
+            for control in controls:
+                for position in control["positions"]:
+                    for encoding in position["encodings"]:
+                        can = self.control_encodings.setdefault(encoding["can"], {})
+                        base = can.setdefault(encoding["base"], [])
+                        base.append((control["variable"], position["variable_value"], int(encoding["mask"], 16), int(encoding["value"], 16)))
+
+    def decode_controls(self, message) -> dict:
+        result = {}
+        # CAN / can_number / base
+        root, can, base, *_ = message.topic.split("/")
+        try:
+            for (variable, variable_value, mask, value) in self.control_encodings[can][base]:
+                data = int(message.payload, base=16)
+                if data & mask == value:
+                    result[variable] = variable_value
+        except KeyError:
+            return result
+        return result
 
     def oddo_config(self, data: dict):
         try:
@@ -645,11 +683,11 @@ class MqttComm(Comm):
                             "A_TRAIN": (self.controller.comm_variables["ACCELERATION"].get() * 1000) // 3
                             if SUBSET_COMMUNICATION_FORMAT else self.controller.comm_variables["ACCELERATION"].get(),
 
-                            "NIC_C": 0,  # !!! PLACEHOLDER - not assigned value according to ERA_ERTMS_040001 v 1.33
+                            "NID_C": 0,  # !!! PLACEHOLDER - not assigned value according to ERA_ERTMS_040001 v 1.33
                             "NID_BG": 16383,  # !!! PLACEHOLDER - unknown (SRS 026 v360 7.5.1.85)
                             "DL_DOUBTOVER": int(self.controller.comm_variables["OVERREADING"].get()),
                             "DL_DOUBTUNDER": int(self.controller.comm_variables["UNDERREADING"].get()),
-                            "V_DOUBTPOS ": 0,  # !!! PLACEHOLDER
+                            "V_DOUBTPOS": 0,  # !!! PLACEHOLDER
                             "V_DOUBTNEG": 0,  # !!! PLACEHOLDER
                             "Q_DIRECTION": direction if direction != -1 else 2,
                         })
@@ -992,7 +1030,8 @@ class MainPage(tk.Frame):
         RotarySwitch(switches,
                      notches=[
                          SwitchPosition(position=0, label="0", value=0),
-                         SwitchPosition(position=90, label="1", value=1)],
+                         SwitchPosition(position=90, label="1", value=1)
+                     ],
                      default=SwitchPosition(position=0, label="0", value=0),
                      block=(90, 360), variable=self.controller.comm_variables["BATTERY"],
                      size=100).grid(row=0, column=0)
