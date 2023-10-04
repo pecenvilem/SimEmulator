@@ -11,7 +11,7 @@ docker compose up
 - Right configurations made. See ***secrets/database/config.json*** and ***secrets/mqtt/config.json*** (change *host* value to **localhost** or specific desired IP address)
 - Logged in as a FIT GitLab user. To do that, just enter <br /> `docker login gitlab.fit.cvut.cz:5050` <br /> and enter your FIT GitLab credentials.
 
-**NOTE: Running Docker on Linux host**  
+**NOTE: Running Docker on Linux host**
 Sometimes an error may occur when launching the app via docker-compose on a **Linux host**.
 Add following row to **app** service in `docker-compose.yml`
 ```yml
@@ -26,5 +26,6 @@ app:
     ...
     ...
 ```
+But you have to also edit the configuration files (in *secrets/database/config.json* and *secrets/mqtt/config.json*) to set both MQTT's and database's *host* to "localhost".
 <br/>
 If you want to run only some parts of the script (for example only the database and MQTT broker without SimEmulator app) then just comment out the unwanted services in docker-compose.yml.
