@@ -1184,6 +1184,9 @@ class ConnectPage(tk.Frame):
         if pane.connect():
             self.controller.connect(comm)
             self.controller.sim.start()
+            from configuration import WAIT_MQTT_START
+            if WAIT_MQTT_START:
+                self.controller.mp.pause_button.invoke()
             self.controller.mp.tkraise()
 
 
