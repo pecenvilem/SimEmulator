@@ -24,6 +24,8 @@ IMG = os.path.join(DIR, "img")
 MAIN_ICON = os.path.join(IMG, "dsfd.gif")
 COMM_CONFIG = os.path.join(DIR, "comm_config.json")
 HJP = os.path.join(IMG, "hjp")
+PLAY = os.path.join(IMG, "play.gif")
+PAUSE = os.path.join(IMG, "pause.gif")
 
 
 def load_mqtt_credentials(filename):
@@ -125,6 +127,9 @@ class Sim:
 
     def togle_pause(self):
         self._pause = not self._pause
+
+    def is_paused(self) -> bool:
+        return self._pause
 
     def load(self):
         """Načte fyzikální parametry z UI jako atributy používané dále pro simulaci"""
@@ -945,6 +950,19 @@ class MainPage(tk.Frame):
         acceleration = float(self.controller.sim_variables["FULL_TRAIN_BRAKE_ACCELERATION"].get())
         self.controller.sim_variables["TRAIN_BRAKING_FORCE"].set(str(int(mass * acceleration)))
 
+    def toggle_pause_button(self, *_):
+        if self.controller.sim.is_paused():
+            self.pause_button.config(image=self.pause_icon)
+        else:
+            self.pause_button.config(image=self.play_icon)
+        self.controller.sim.togle_pause()
+
+    def restart_sim(self, *_):
+        self.controller.sim.stop()
+        self.controller.load_default_variables()
+        self.track.load_data()
+        self.controller.sim.start()
+
     def __init__(self, parent, controller):
         """Inicializace a definice prvků UI"""
         tk.Frame.__init__(self, parent)
@@ -1078,9 +1096,12 @@ class MainPage(tk.Frame):
         sim.grid_columnconfigure(0, weight=1)
         sim.grid_columnconfigure(30, weight=1)
         sim.grid(row=3, column=1, columnspan=3)
-        tk.Button(sim, text="Načíst", command=self.controller.sim.start).grid(row=0, column=1, rowspan=2, sticky="e")
-        self.pause_lbl = tk.Label(sim, text="", fg="red", width=13)
-        self.pause_lbl.grid(row=1, column=2, sticky="w")
+        tk.Button(sim, text="Načíst", command=self.controller.sim.start).grid(row=1, column=1, rowspan=1, sticky="e")
+        self.pause_icon = tk.PhotoImage(file=PAUSE)
+        self.play_icon = tk.PhotoImage(file=PLAY)
+        self.pause_button = tk.Button(sim, image=self.pause_icon, command=self.toggle_pause_button)
+        self.pause_button.grid(row=0, column=1, rowspan=1, columnspan=2, sticky="ew")
+        tk.Button(sim, text="Restart", command=self.restart_sim).grid(row=1, column=2, rowspan=1, sticky="e")
         tk.Label(sim, text="Hmotnost vlaku: [t]").grid(row=0, column=3, sticky="e")
         e = tk.Entry(sim, width=6, textvariable=self.controller.sim_variables["TRAIN_MASS"])
         self.controller.sim_variables["TRAIN_MASS"].set(str(self.controller.sim.MASS))
