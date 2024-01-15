@@ -1,0 +1,171 @@
+[
+  {
+    "name": "HJP",
+    "description": "Hlavní jízdní páka",
+    "variable": "DRIVING_LEAVER",
+    "positions": [
+      {
+        "label": "BP",
+        "description": "Brzda pneumatická",
+        "variable_value": 1,
+        "encodings": [
+          {
+            "can": "1",
+            "base": "0",
+            "mask": "0x1f00000000000000",
+            "value": "0x1300000000000000"
+          }
+        ]
+      },
+      {
+        "label": "BE",
+        "description": "Brzda elektrodynamická",
+        "variable_value": 2,
+        "encodings": [
+          {
+            "can": "1",
+            "base": "0",
+            "mask": "0x1f00000000000000",
+            "value": "0x1200000000000000"
+          }
+        ]
+      },
+      {
+        "label": "V",
+        "description": "Výběh",
+        "variable_value": 3,
+        "encodings": [
+          {
+            "can": "1",
+            "base": "0",
+            "mask": "0x1f00000000000000",
+            "value": "0x1000000000000000"
+          }
+        ]
+      },
+      {
+        "label": "J",
+        "description": "Jízda",
+        "variable_value": 4,
+        "encodings": [
+          {
+            "can": "1",
+            "base": "0",
+            "mask": "0x1f00000000000000",
+            "value": "0x0800000000000000"
+          }
+        ]
+      },
+      {
+        "label": "S",
+        "description": "Souhlas",
+        "variable_value": 5,
+        "encodings": [
+          {
+            "can": "1",
+            "base": "0",
+            "mask": "0x1f00000000000000",
+            "value": "0x0c00000000000000"
+          }
+        ]
+      },
+      {
+        "label": "R",
+        "description": "Rychlobrzda",
+        "variable_value": "0",
+        "encodings": [
+          {
+            "can": "1",
+            "base": "0",
+            "mask": "0x1f00000000000000",
+            "value": "0x11000c0000000000"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "SJ",
+    "description": "Směr jízdy",
+    "variable": "DIRECTION_LEAVER",
+    "positions": [
+      {
+        "label": "Z",
+        "description": "Zpět",
+        "variable_value": 0,
+        "encodings": [
+          {
+            "can": "1",
+            "base": "4",
+            "mask": "0x00000c0000000000",
+            "value": "0x00000a0000000000"
+          }
+        ]
+      },
+      {
+        "label": "0",
+        "description": "Nezadán",
+        "variable_value": 2,
+        "encodings": [
+          {
+            "can": "1",
+            "base": "4",
+            "mask": "0x00000c0000000000",
+            "value": "0x0000200000000000"
+          }
+        ]
+      },
+      {
+        "label": "P",
+        "description": "Vpřed",
+        "variable_value": 1,
+        "encodings": [
+          {
+            "can": "1",
+            "base": "4",
+            "mask": "0x00000c0000000000",
+            "value": "0x0000600000000000"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "BAT",
+    "description": "Baterie",
+    "variable": "BATTERY",
+    "positions": [
+      {
+        "label": "BAT-Z",
+        "description": "Zapnout",
+        "variable_value": 1,
+        "encodings": []
+      },
+      {
+        "label": "BAT-Z",
+        "description": "Vypnout",
+        "variable_value": 0,
+        "encodings": []
+      }
+    ]
+  },
+  {
+    "name": "SR",
+    "description": "Spínač řízení",
+    "variable": "CONTROL_SWITCH",
+    "positions": [
+      {
+        "label": "V",
+        "description": "Vypnuto",
+        "variable_value": 0,
+        "encodings": []
+      },
+      {
+        "label": "NK",
+        "description": "Zapnuto",
+        "variable_value": 1,
+        "encodings": []
+      }
+    ]
+  }
+]

@@ -20,8 +20,7 @@ TIU_SUBSCRIBE_TOPIC = "+/tiu/#"
 ODDO_SUBSCRIBE_TOPIC = "+/odo/#"
 CONTROLS_SUBSCRIBE_TOPIC_LIST = [
     "CAN/1/0/0",
-    "CAN/1/4/0",
-    "CAN/1/5/0",
+    "CAN/1/1/0",
 ]
 
 # intervals for transmitting values
