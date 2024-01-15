@@ -3,7 +3,7 @@ version: '3.8'
 services:
   app:
     # Using image from GitLab container registry - the latest master build
-    image: gitlab.fit.cvut.cz:5000/etcs/simemulator:master
+    image: gitlab.fit.cvut.cz:5050/etcs/simemulator:master
     ports:
       - "5900:5900"
     working_dir: /app
@@ -33,19 +33,20 @@ services:
       - "1883:1883"
 
   database:
-    image: mysql
+    image: mysql:8.1
     volumes:
       - ./db/2023-03-11/2023-03-11.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
-      # noinspection SpellCheckingInspection
       MYSQL_DATABASE: 'infradb'
       MYSQL_ROOT_PASSWORD: 'root'
     ports:
       # <Port exposed> : < MySQL Port running inside container>
       - '3306:3306'
+    # Show errors only
+    command: --log-error-verbosity=1
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-proot", "-h", "database"]
-      interval: 8s
-      timeout: 8s
-      retries: 30
+      interval: 4s
+      timeout: 4s
+      retries: 80
       start_period: 8s

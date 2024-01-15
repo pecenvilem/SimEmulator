@@ -160,7 +160,8 @@ class TrackMap(tk.Frame):
                                 "NID_BG": ((telegram & (16383 << (i - 49))) >> (i - 49)),  # 14 bits [36-49],
                                 "Q_LINK": (telegram & (1 << (i - 50))) >> (i - 50),  # 1 bit [50],
                                 "End_Of_Information": [{
-                                    "NID_PACKET": 255  # 8 more bits [51-58]
+                                    "NID_PACKET": 255,  # 8 more bits [51-58]
+                                    "L_PACKET": 0
                                 }]
                             })
                         else:
