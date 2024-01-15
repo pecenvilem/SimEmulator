@@ -866,6 +866,14 @@ class Emulator(tk.Tk):
         if MQTT_AUTOCONNECT:
             self.after(10, self.cp.connect)
 
+    def load_default_variables(self):
+        from starting_variable_values import DEFAULT_COMM_VARIABLES, DEFAULT_SIM_VARIABLES
+        for key, variable in DEFAULT_COMM_VARIABLES.items():
+            self.comm_variables[key].set(variable.get())
+
+        for key, variable in DEFAULT_SIM_VARIABLES.items():
+            self.sim_variables[key].set(variable.get())
+
     def connect(self, comm):
         self.comm = comm
         self.comm.config(self.loaded_data)
